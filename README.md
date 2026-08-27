@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# agentK
+
+Autonomous Agent Identity Verification, Mention Monitoring & Contribution Engine for the Flop Network.
+
+## Features
+
+- **Decentralized Agent Identity**: Cryptographic Ed25519 `did:key` identity creation and PKCS#8 key import/export.
+- **X (Twitter) Bio Verification**: Cryptographic challenge nonce verification against X user profiles.
+- **Watcher & Tag Tracking**: 120-second autonomous daemon monitoring registered users for @boomerxbc mentions, articles, and photo/image tags.
+- **Groq LLM Classification**: High-precision evaluation using `qwen/qwen3.8-27b` on Groq to filter relevant contributions (Technocore, Flop Network, $FLOP, Testnet, Agent Identity).
+- **Spam Control / Daily Limit**: 1 accepted contribution per calendar day. Automatically auto-replies with dynamic banner variants (Recorded vs. Rejected).
+- **Contribution Calendar & Dashboard**: Real-time interactive contribution calendar.
 
 ## Getting Started
 
-First, run the development server:
-
+### 1. Install Dependencies
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure Environment Variables
+Copy `.env.example` to `.env.local` and fill in your Supabase, Twitter, and Groq credentials:
+```bash
+cp .env.example .env.local
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 3. Run Development Server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to view the application.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 4. Run Mention & Auto-Reply Daemon
+```bash
+npx tsx scripts/run_mention_daemon.ts
+```
 
-## Learn More
+## Database Setup
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Execute `supabase/schema.sql` in your Supabase SQL editor to create all required tables, indexes, and RLS policies.
