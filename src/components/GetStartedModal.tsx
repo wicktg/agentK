@@ -311,12 +311,12 @@ export default function GetStartedModal({
 
       {/* Modal Container */}
       <div className="relative w-full max-w-2xl bg-[#0c0d12] border border-white/[0.1] rounded-2xl overflow-hidden z-10 flex flex-col max-h-[92vh] overflow-y-auto">
-        {/* Close Button */}
+        {/* Close Button (Hidden on Mobile UI) */}
         {step !== "verifying" && (
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 sm:top-5 right-4 sm:right-5 text-[#8e98a8] hover:text-white transition-colors p-1.5 focus:outline-none rounded-lg hover:bg-white/[0.05] z-20 cursor-pointer"
+            className="hidden sm:block absolute top-5 right-5 text-[#8e98a8] hover:text-white transition-colors p-1.5 focus:outline-none rounded-lg hover:bg-white/[0.05] z-20 cursor-pointer"
             aria-label="Close modal"
           >
             <svg

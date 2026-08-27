@@ -117,6 +117,8 @@ export default function GridCanvas() {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
+      const isMobile = width < 640;
+
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const cx = offsetX + c * pitchX;
@@ -124,6 +126,11 @@ export default function GridCanvas() {
 
           const u = c / (cols - 1); // 0 (left) to 1 (right)
           const v = r / (rows - 1); // 0 (top) to 1 (bottom)
+
+          // On mobile screens, remove pattern from top 25%
+          if (isMobile && v < 0.25) {
+            continue;
+          }
 
           let isLeftSquare = false;
           let isRightCircle = false;
@@ -184,8 +191,16 @@ export default function GridCanvas() {
               ? Math.max(0, 1 - Math.pow((v - 0.60) / 0.40, 1.2))
               : 1.0;
 
+          // Smooth fade in near the 25% threshold on mobile
+          const topFade =
+            isMobile && v >= 0.25 && v < 0.31
+              ? Math.max(0, Math.min(1.0, (v - 0.25) / 0.06))
+              : 1.0;
+
+          const cellAlpha = bottomFade * topFade;
+
           if (isLeftSquare) {
-            ctx.globalAlpha = bottomFade;
+            ctx.globalAlpha = cellAlpha;
             const colorIndex = Math.floor(noiseL * PALETTE.length);
             ctx.fillStyle = PALETTE[colorIndex];
 
@@ -204,7 +219,7 @@ export default function GridCanvas() {
             }
             ctx.globalAlpha = 1.0;
           } else if (isRightCircle) {
-            ctx.globalAlpha = bottomFade;
+            ctx.globalAlpha = cellAlpha;
             const colorIndex = Math.floor(noiseR * PALETTE.length);
             ctx.fillStyle = PALETTE[colorIndex];
 
@@ -231,9 +246,10 @@ export default function GridCanvas() {
                 Math.floor(noiseB * BACKGROUND_ASCII_GLYPHS.length)
               ];
 
-            ctx.globalAlpha = 1.0;
+            ctx.globalAlpha = topFade;
             ctx.fillStyle = "rgba(255, 255, 255, 0.01)";
             ctx.fillText(bgGlyph, cx, cy);
+            ctx.globalAlpha = 1.0;
           }
         }
       }
