@@ -117,7 +117,9 @@ export default function GridCanvas() {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      const isMobile = width < 640;
+      const isMobile = width < 768;
+      // On mobile screens, shift the blue/white pattern boundaries down to remove top 25% of the pattern
+      const mobileTopCut = isMobile ? 0.18 : 0.0;
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -130,8 +132,9 @@ export default function GridCanvas() {
           let isLeftSquare = false;
           let isRightCircle = false;
 
-          // Boundary curve for left cluster
-          const leftBound = 0.36 + u * 1.28 + Math.sin(u * 12) * 0.04;
+          // Boundary curve for left cluster (shifted down on mobile)
+          const leftBound =
+            0.36 + mobileTopCut + u * 1.28 + Math.sin(u * 12) * 0.04;
 
           const seedL = Math.sin(c * 19.3 + r * 71.7) * 43758.5453;
           const noiseL = seedL - Math.floor(seedL);
@@ -146,10 +149,13 @@ export default function GridCanvas() {
             }
           }
 
-          // Boundary curve for right cluster
+          // Boundary curve for right cluster (shifted down on mobile)
           const uRight = 1.0 - u;
           const rightBound =
-            0.42 + uRight * 1.15 + Math.sin(uRight * 10) * 0.035;
+            0.42 +
+            mobileTopCut +
+            uRight * 1.15 +
+            Math.sin(uRight * 10) * 0.035;
 
           const seedR = Math.sin(c * 23.7 + r * 53.1) * 31415.9265;
           const noiseR = seedR - Math.floor(seedR);
@@ -164,8 +170,8 @@ export default function GridCanvas() {
             }
           }
 
-          // Specific floating satellite
-          if (Math.abs(u - 0.78) < 0.025 && Math.abs(v - 0.64) < 0.03) {
+          // Specific floating satellite (only on desktop)
+          if (!isMobile && Math.abs(u - 0.78) < 0.025 && Math.abs(v - 0.64) < 0.03) {
             isRightCircle = true;
           }
 
@@ -175,8 +181,8 @@ export default function GridCanvas() {
             else isLeftSquare = false;
           }
 
-          // On mobile screens, remove the blue & white hero pattern from the top 25%
-          if (isMobile && v < 0.25) {
+          // Extra safety check: on mobile remove top 25% of pattern
+          if (isMobile && v < 0.52) {
             isLeftSquare = false;
             isRightCircle = false;
           }
@@ -190,16 +196,8 @@ export default function GridCanvas() {
           const bottomFade =
             v > 0.6 ? Math.max(0, 1 - Math.pow((v - 0.6) / 0.4, 1.2)) : 1.0;
 
-          // Smooth fade in near the 25% threshold on mobile for the blue/white cluster
-          const topFade =
-            isMobile && v >= 0.25 && v < 0.32
-              ? Math.max(0, Math.min(1.0, (v - 0.25) / 0.07))
-              : 1.0;
-
-          const heroPatternAlpha = bottomFade * topFade;
-
           if (isLeftSquare) {
-            ctx.globalAlpha = heroPatternAlpha;
+            ctx.globalAlpha = bottomFade;
             const colorIndex = Math.floor(noiseL * PALETTE.length);
             ctx.fillStyle = PALETTE[colorIndex];
 
@@ -218,7 +216,7 @@ export default function GridCanvas() {
             }
             ctx.globalAlpha = 1.0;
           } else if (isRightCircle) {
-            ctx.globalAlpha = heroPatternAlpha;
+            ctx.globalAlpha = bottomFade;
             const colorIndex = Math.floor(noiseR * PALETTE.length);
             ctx.fillStyle = PALETTE[colorIndex];
 
