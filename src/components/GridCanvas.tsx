@@ -127,11 +127,6 @@ export default function GridCanvas() {
           const u = c / (cols - 1); // 0 (left) to 1 (right)
           const v = r / (rows - 1); // 0 (top) to 1 (bottom)
 
-          // On mobile screens, remove pattern from top 25%
-          if (isMobile && v < 0.25) {
-            continue;
-          }
-
           let isLeftSquare = false;
           let isRightCircle = false;
 
@@ -180,6 +175,12 @@ export default function GridCanvas() {
             else isLeftSquare = false;
           }
 
+          // On mobile screens, remove the blue & white hero pattern from the top 25%
+          if (isMobile && v < 0.25) {
+            isLeftSquare = false;
+            isRightCircle = false;
+          }
+
           // Check if this pattern cell is currently scrambling or resolved
           const cellUnlockTime =
             0.15 + (1 - v) * 0.55 + (isLeftSquare ? noiseL : noiseR) * 0.3;
@@ -187,20 +188,18 @@ export default function GridCanvas() {
 
           // Progressive smooth fade from the bottom on the characters
           const bottomFade =
-            v > 0.60
-              ? Math.max(0, 1 - Math.pow((v - 0.60) / 0.40, 1.2))
-              : 1.0;
+            v > 0.6 ? Math.max(0, 1 - Math.pow((v - 0.6) / 0.4, 1.2)) : 1.0;
 
-          // Smooth fade in near the 25% threshold on mobile
+          // Smooth fade in near the 25% threshold on mobile for the blue/white cluster
           const topFade =
-            isMobile && v >= 0.25 && v < 0.31
-              ? Math.max(0, Math.min(1.0, (v - 0.25) / 0.06))
+            isMobile && v >= 0.25 && v < 0.32
+              ? Math.max(0, Math.min(1.0, (v - 0.25) / 0.07))
               : 1.0;
 
-          const cellAlpha = bottomFade * topFade;
+          const heroPatternAlpha = bottomFade * topFade;
 
           if (isLeftSquare) {
-            ctx.globalAlpha = cellAlpha;
+            ctx.globalAlpha = heroPatternAlpha;
             const colorIndex = Math.floor(noiseL * PALETTE.length);
             ctx.fillStyle = PALETTE[colorIndex];
 
@@ -219,7 +218,7 @@ export default function GridCanvas() {
             }
             ctx.globalAlpha = 1.0;
           } else if (isRightCircle) {
-            ctx.globalAlpha = cellAlpha;
+            ctx.globalAlpha = heroPatternAlpha;
             const colorIndex = Math.floor(noiseR * PALETTE.length);
             ctx.fillStyle = PALETTE[colorIndex];
 
@@ -238,7 +237,7 @@ export default function GridCanvas() {
             }
             ctx.globalAlpha = 1.0;
           } else {
-            // Static ambient background ASCII matrix
+            // Full ambient background ASCII matrix (always rendered across entire canvas)
             const seedB = Math.sin(c * 13.1 + r * 37.9) * 10000;
             const noiseB = seedB - Math.floor(seedB);
             const bgGlyph =
@@ -246,10 +245,9 @@ export default function GridCanvas() {
                 Math.floor(noiseB * BACKGROUND_ASCII_GLYPHS.length)
               ];
 
-            ctx.globalAlpha = topFade;
+            ctx.globalAlpha = 1.0;
             ctx.fillStyle = "rgba(255, 255, 255, 0.01)";
             ctx.fillText(bgGlyph, cx, cy);
-            ctx.globalAlpha = 1.0;
           }
         }
       }
