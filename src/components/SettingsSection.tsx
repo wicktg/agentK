@@ -248,10 +248,10 @@ export default function SettingsSection() {
       {showLearnModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60"
             onClick={() => setShowLearnModal(false)}
           />
-          <div className="relative w-full max-w-lg bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-7 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-7 z-10 flex flex-col max-h-[90vh] overflow-y-auto">
             <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight mb-2">
               How Autopilot Custody Works
             </h3>
@@ -299,10 +299,10 @@ export default function SettingsSection() {
       {showRevokeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60"
             onClick={() => setShowRevokeModal(false)}
           />
-          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-6 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-6 z-10 flex flex-col max-h-[90vh] overflow-y-auto">
             <h3 className="text-base sm:text-lg font-semibold text-rose-400 tracking-tight mb-2">
               Revoke Autopilot Key?
             </h3>
@@ -336,10 +336,10 @@ export default function SettingsSection() {
       {showDisconnectXModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 bg-black/60"
             onClick={() => setShowDisconnectXModal(false)}
           />
-          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-6 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-6 z-10 flex flex-col max-h-[90vh] overflow-y-auto">
             <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight mb-2">
               Disconnect X Account?
             </h3>
