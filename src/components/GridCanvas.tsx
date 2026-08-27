@@ -152,10 +152,7 @@ export default function GridCanvas() {
           // Boundary curve for right cluster
           const uRight = 1.0 - u;
           const rightBound =
-            0.42 +
-            mobileTopCut +
-            uRight * 1.15 +
-            Math.sin(uRight * 10) * 0.035;
+            0.42 + mobileTopCut + uRight * 1.15 + Math.sin(uRight * 10) * 0.035;
 
           const seedR = Math.sin(c * 23.7 + r * 53.1) * 31415.9265;
           const noiseR = seedR - Math.floor(seedR);
@@ -171,7 +168,11 @@ export default function GridCanvas() {
           }
 
           // Specific floating satellite (only on desktop)
-          if (!isMobile && Math.abs(u - 0.78) < 0.025 && Math.abs(v - 0.64) < 0.03) {
+          if (
+            !isMobile &&
+            Math.abs(u - 0.78) < 0.025 &&
+            Math.abs(v - 0.64) < 0.03
+          ) {
             isRightCircle = true;
           }
 
