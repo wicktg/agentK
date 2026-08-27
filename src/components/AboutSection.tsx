@@ -98,12 +98,12 @@ export default function AboutSection() {
   return (
     <section
       id="about"
-      className="relative w-full bg-[#08090c] py-24 sm:py-32 md:py-40 lg:py-48 px-6 sm:px-10 md:px-16 lg:px-20 overflow-hidden select-none scroll-mt-6"
+      className="relative w-full bg-[#08090c] py-16 sm:py-24 md:py-36 lg:py-44 px-4 sm:px-8 md:px-16 lg:px-20 overflow-hidden select-none scroll-mt-6"
     >
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 xl:gap-24 items-center">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-12 lg:gap-16 xl:gap-24 items-center">
         {/* Left Column: Artwork Card with Aesthetic Grain Overlay */}
         <div className="lg:col-span-6 xl:col-span-5 flex justify-center">
-          <div className="relative w-full max-w-[440px] aspect-square rounded-2xl overflow-hidden group">
+          <div className="relative w-full max-w-[280px] sm:max-w-[380px] lg:max-w-[440px] aspect-square rounded-2xl overflow-hidden group">
             {/* Base Logo Artwork */}
             <img
               src="/logo.png"

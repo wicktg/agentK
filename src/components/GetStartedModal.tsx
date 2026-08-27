@@ -302,21 +302,21 @@ export default function GetStartedModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 select-none">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60"
+        className="fixed inset-0 bg-black/70 backdrop-blur-sm"
         onClick={() => step !== "verifying" && onClose()}
       />
 
       {/* Modal Container */}
-      <div className="relative w-full max-w-2xl bg-[#0c0d12] border border-white/[0.1] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden z-10 flex flex-col">
+      <div className="relative w-full max-w-2xl bg-[#0c0d12] border border-white/[0.1] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden z-10 flex flex-col max-h-[92vh] overflow-y-auto">
         {/* Close Button */}
         {step !== "verifying" && (
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-5 right-5 text-[#8e98a8] hover:text-white transition-colors p-1.5 focus:outline-none rounded-lg hover:bg-white/[0.05] z-20 cursor-pointer"
+            className="absolute top-4 sm:top-5 right-4 sm:right-5 text-[#8e98a8] hover:text-white transition-colors p-1.5 focus:outline-none rounded-lg hover:bg-white/[0.05] z-20 cursor-pointer"
             aria-label="Close modal"
           >
             <svg
@@ -337,11 +337,11 @@ export default function GetStartedModal({
 
         {/* --- ACCESS CLOSED VIEW (When NEXT_PUBLIC_ACCESS is false) --- */}
         {!isAccessEnabled ? (
-          <div className="p-6 sm:p-8 flex flex-col items-center text-center max-w-lg mx-auto w-full">
+          <div className="p-4 sm:p-7 md:p-8 flex flex-col items-center text-center max-w-lg mx-auto w-full">
             {/* Minimal ASCII Closed Art Element */}
-            <div className="w-full bg-[#08090c] border border-white/[0.08] rounded-xl p-5 mb-6 shadow-inner font-mono text-[11.5px] leading-[1.35] select-none text-left">
+            <div className="w-full bg-[#08090c] border border-white/[0.08] rounded-xl p-3.5 sm:p-5 mb-5 sm:mb-6 shadow-inner font-mono text-[10px] sm:text-[11.5px] leading-[1.35] select-none text-left overflow-x-auto">
               <pre className="text-center text-[#17A2C6] whitespace-pre font-mono font-medium drop-shadow-[0_0_8px_rgba(23,162,198,0.25)]">
-{`   .---------------------------------------.
+                {`   .---------------------------------------.
   /   \\___/                           \\___/   \\
  |   ( -.- )    AGENT_00 // CLOSED   ( -.- )   |
   \\    /|\\                             /|\\    /

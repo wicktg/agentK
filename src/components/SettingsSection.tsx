@@ -65,9 +65,9 @@ export default function SettingsSection() {
   };
 
   return (
-    <div className="w-full max-w-3xl mx-auto flex flex-col select-none py-4 px-2 sm:px-4 text-white">
+    <div className="w-full max-w-3xl mx-auto flex flex-col select-none py-2 sm:py-4 px-2 sm:px-4 text-white">
       {/* Settings Page Title */}
-      <div className="mb-6">
+      <div className="mb-5 sm:mb-6">
         <h1 className="text-xl sm:text-2xl font-semibold tracking-[-0.02em] text-white">
           Settings
         </h1>
@@ -77,42 +77,42 @@ export default function SettingsSection() {
         </p>
       </div>
 
-      {/* --- PROMINENT DELEGATION & CUSTODY CARD (MOST SENSITIVE AREA) --- */}
-      <div className="w-full bg-[#08090c] border border-white/[0.12] rounded-2xl p-5 sm:p-7 mb-6 relative overflow-hidden">
+      {/* --- PROMINENT DELEGATION & CUSTODY CARD --- */}
+      <div className="w-full bg-[#08090c] border border-white/[0.12] rounded-xl sm:rounded-2xl p-4 sm:p-7 mb-5 sm:mb-6 relative overflow-hidden">
         {/* Top Status Badge Row */}
-        <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3 sm:mb-4">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[11px] uppercase tracking-wider text-[#8e98a8]">
+            <span className="font-mono text-[10px] sm:text-[11px] uppercase tracking-wider text-[#8e98a8]">
               {keyRevoked
                 ? "[ CUSTODY REVOKED ]"
                 : "[ ACTIVE AUTOPILOT CUSTODY ]"}
             </span>
           </div>
 
-          <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-white/[0.06] text-[#8e98a8]">
+          <span className="font-mono text-[9.5px] sm:text-[10px] px-2 py-0.5 rounded bg-white/[0.06] text-[#8e98a8]">
             Ed25519 Subkey
           </span>
         </div>
 
         {/* Primary Statement */}
-        <h2 className="text-lg sm:text-xl font-semibold text-white tracking-tight mb-2">
+        <h2 className="text-base sm:text-xl font-semibold text-white tracking-tight mb-2 leading-snug">
           {keyRevoked
             ? "Autopilot signing is currently revoked"
             : "We hold an encrypted key for autopilot signing"}
         </h2>
 
-        <p className="text-xs sm:text-[13px] text-[#9ea3b5] leading-relaxed mb-6 font-sans">
+        <p className="text-xs sm:text-[13px] text-[#9ea3b5] leading-relaxed mb-5 sm:mb-6 font-sans">
           {keyRevoked
             ? "Your signing subkey has been purged from active rotation. agentK cannot sign any contributions until a new key is provisioned."
             : "agentK signs verified public X contributions and pushes them to Flop Network using a client-isolated subkey. The master key never leaves your control, and every record is publicly verifiable."}
         </p>
 
         {/* Primary Custody Actions */}
-        <div className="flex flex-wrap items-center gap-3 pt-4 border-t border-white/[0.06]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-4 border-t border-white/[0.06]">
           <button
             type="button"
             onClick={() => setShowLearnModal(true)}
-            className="px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-xs font-semibold text-white transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] text-xs font-semibold text-white transition-colors cursor-pointer text-center"
           >
             Learn how custody works
           </button>
@@ -121,7 +121,7 @@ export default function SettingsSection() {
             <button
               type="button"
               onClick={() => setShowRevokeModal(true)}
-              className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-xs font-semibold text-rose-400 transition-colors cursor-pointer ml-auto"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-xs font-semibold text-rose-400 transition-colors cursor-pointer sm:ml-auto text-center"
             >
               Revoke Key
             </button>
@@ -129,7 +129,7 @@ export default function SettingsSection() {
             <button
               type="button"
               onClick={() => setKeyRevoked(false)}
-              className="px-4 py-2 rounded-xl bg-[#17A2C6]/15 hover:bg-[#17A2C6]/25 border border-[#17A2C6]/30 text-xs font-semibold text-[#17A2C6] transition-colors cursor-pointer ml-auto"
+              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-[#17A2C6]/15 hover:bg-[#17A2C6]/25 border border-[#17A2C6]/30 text-xs font-semibold text-[#17A2C6] transition-colors cursor-pointer sm:ml-auto text-center"
             >
               Re-enable Autopilot Key
             </button>
@@ -138,24 +138,24 @@ export default function SettingsSection() {
       </div>
 
       {/* --- IDENTITY & KEY BLOB MANAGEMENT --- */}
-      <div className="w-full bg-[#08090c] border border-white/[0.08] rounded-2xl p-5 sm:p-7 mb-6">
-        <h3 className="text-sm font-semibold uppercase tracking-wider font-mono text-[#8e98a8] mb-4">
+      <div className="w-full bg-[#08090c] border border-white/[0.08] rounded-xl sm:rounded-2xl p-4 sm:p-7 mb-5 sm:mb-6">
+        <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wider font-mono text-[#8e98a8] mb-3 sm:mb-4">
           Cryptographic Identity
         </h3>
 
         {/* DID Key String */}
         <div className="mb-5">
-          <label className="block text-[11px] font-mono text-[#788290] uppercase mb-1.5">
+          <label className="block text-[10.5px] sm:text-[11px] font-mono text-[#788290] uppercase mb-1.5">
             Decentralized Identifier (DID)
           </label>
-          <div className="w-full bg-[#050608] border border-white/[0.06] rounded-xl p-3.5 flex items-center justify-between gap-3">
-            <span className="font-mono text-xs text-[#17A2C6] truncate select-all">
+          <div className="w-full bg-[#050608] border border-white/[0.06] rounded-xl p-3 sm:p-3.5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+            <span className="font-mono text-[11px] sm:text-xs text-[#17A2C6] truncate select-all">
               {displayDid}
             </span>
             <button
               type="button"
               onClick={handleCopyDid}
-              className="shrink-0 bg-white/[0.08] hover:bg-white/[0.14] text-white font-mono text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="shrink-0 bg-white/[0.08] hover:bg-white/[0.14] text-white font-mono text-xs px-3 py-2 sm:py-1.5 rounded-lg transition-colors cursor-pointer text-center"
             >
               {copiedDid ? "Copied!" : "Copy"}
             </button>
@@ -163,7 +163,7 @@ export default function SettingsSection() {
         </div>
 
         {/* Key Blob Actions */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-white/[0.06]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-4 border-t border-white/[0.06]">
           <div className="text-left">
             <h4 className="text-xs font-medium text-white">
               Encrypted Key Backup
@@ -176,7 +176,7 @@ export default function SettingsSection() {
           <button
             type="button"
             onClick={handleDownloadKeyBlob}
-            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-xs font-semibold text-white transition-colors cursor-pointer shrink-0"
+            className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/[0.08] text-xs font-semibold text-white transition-colors cursor-pointer shrink-0 text-center"
           >
             {downloaded ? "✓ Key Blob Downloaded" : "Download Key Blob Again"}
           </button>
@@ -184,15 +184,15 @@ export default function SettingsSection() {
       </div>
 
       {/* --- CONNECTED ACCOUNTS --- */}
-      <div className="w-full bg-[#08090c] border border-white/[0.08] rounded-2xl p-5 sm:p-7">
-        <h3 className="text-sm font-semibold uppercase tracking-wider font-mono text-[#8e98a8] mb-4">
+      <div className="w-full bg-[#08090c] border border-white/[0.08] rounded-xl sm:rounded-2xl p-4 sm:p-7">
+        <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wider font-mono text-[#8e98a8] mb-3 sm:mb-4">
           Connected Accounts
         </h3>
 
         {/* Account 1: X (Twitter) */}
-        <div className="flex items-center justify-between py-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 py-2">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-white/[0.06] border border-white/[0.08] flex items-center justify-center text-white overflow-hidden shrink-0">
               {user?.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -222,35 +222,37 @@ export default function SettingsSection() {
             </div>
           </div>
 
-          {xConnected ? (
-            <button
-              type="button"
-              onClick={() => setShowDisconnectXModal(true)}
-              className="px-3.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-rose-500/10 hover:text-rose-400 border border-white/[0.08] hover:border-rose-500/30 text-xs font-medium text-[#8e98a8] transition-colors cursor-pointer"
-            >
-              Disconnect X
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setXConnected(true)}
-              className="px-3.5 py-1.5 rounded-lg bg-[#17A2C6]/15 hover:bg-[#17A2C6]/25 border border-[#17A2C6]/30 text-xs font-medium text-[#17A2C6] transition-colors cursor-pointer"
-            >
-              Connect X
-            </button>
-          )}
+          <div className="w-full sm:w-auto">
+            {xConnected ? (
+              <button
+                type="button"
+                onClick={() => setShowDisconnectXModal(true)}
+                className="w-full sm:w-auto px-3.5 py-2 sm:py-1.5 rounded-lg bg-white/[0.04] hover:bg-rose-500/10 hover:text-rose-400 border border-white/[0.08] hover:border-rose-500/30 text-xs font-medium text-[#8e98a8] transition-colors cursor-pointer text-center"
+              >
+                Disconnect X
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setXConnected(true)}
+                className="w-full sm:w-auto px-3.5 py-2 sm:py-1.5 rounded-lg bg-[#17A2C6]/15 hover:bg-[#17A2C6]/25 border border-[#17A2C6]/30 text-xs font-medium text-[#17A2C6] transition-colors cursor-pointer text-center"
+              >
+                Connect X
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* --- MODAL 1: LEARN HOW CUSTODY WORKS --- */}
       {showLearnModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="fixed inset-0 bg-black/60"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowLearnModal(false)}
           />
-          <div className="relative w-full max-w-lg bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-6 sm:p-7 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col">
-            <h3 className="text-lg font-semibold text-white tracking-tight mb-2">
+          <div className="relative w-full max-w-lg bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-7 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col max-h-[90vh] overflow-y-auto">
+            <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight mb-2">
               How Autopilot Custody Works
             </h3>
             <p className="text-xs text-[#8e98a8] leading-relaxed mb-4">
@@ -258,7 +260,7 @@ export default function SettingsSection() {
               your cryptographic identity is protected:
             </p>
 
-            <div className="flex flex-col gap-3 font-mono text-xs text-[#d2d9e4] mb-6">
+            <div className="flex flex-col gap-2.5 sm:gap-3 font-mono text-xs text-[#d2d9e4] mb-5 sm:mb-6">
               <div className="p-3 rounded-xl bg-[#08090c] border border-white/[0.06]">
                 <span className="text-[#17A2C6] block font-semibold mb-1">
                   1. Subkey Isolation
@@ -295,16 +297,16 @@ export default function SettingsSection() {
 
       {/* --- MODAL 2: CONFIRM REVOKE KEY --- */}
       {showRevokeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="fixed inset-0 bg-black/60"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowRevokeModal(false)}
           />
-          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-6 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col">
-            <h3 className="text-lg font-semibold text-rose-400 tracking-tight mb-2">
+          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-6 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col max-h-[90vh] overflow-y-auto">
+            <h3 className="text-base sm:text-lg font-semibold text-rose-400 tracking-tight mb-2">
               Revoke Autopilot Key?
             </h3>
-            <p className="text-xs text-[#8e98a8] leading-relaxed mb-6 font-sans">
+            <p className="text-xs text-[#8e98a8] leading-relaxed mb-5 sm:mb-6 font-sans">
               This will immediately purge your active signing subkey from
               memory. agentK will no longer be able to automatically sign your
               public X contributions.
@@ -332,16 +334,16 @@ export default function SettingsSection() {
 
       {/* --- MODAL 3: DISCONNECT X --- */}
       {showDisconnectXModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="fixed inset-0 bg-black/60"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setShowDisconnectXModal(false)}
           />
-          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-6 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col">
-            <h3 className="text-lg font-semibold text-white tracking-tight mb-2">
+          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-6 shadow-[0_25px_70px_rgba(0,0,0,0.9)] z-10 flex flex-col max-h-[90vh] overflow-y-auto">
+            <h3 className="text-base sm:text-lg font-semibold text-white tracking-tight mb-2">
               Disconnect X Account?
             </h3>
-            <p className="text-xs text-[#8e98a8] leading-relaxed mb-6 font-sans">
+            <p className="text-xs text-[#8e98a8] leading-relaxed mb-5 sm:mb-6 font-sans">
               agentK will stop monitoring and signing contributions from{" "}
               <span className="text-white font-mono">{displayHandle}</span>.
             </p>

@@ -47,7 +47,7 @@ export default function XScheduler() {
   const todayMonth = now.getMonth();
   const todayYear = now.getFullYear();
 
-  // Fetch real verified posts from backend API / Supabase (Zero mock data)
+  // Fetch real verified posts from backend API / Supabase
   useEffect(() => {
     async function loadRealPosts() {
       try {
@@ -134,74 +134,76 @@ export default function XScheduler() {
   }
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex flex-col items-center select-none py-2 px-2 sm:px-4">
+    <div className="w-full max-w-5xl mx-auto flex flex-col items-center select-none py-1 sm:py-2 px-1 sm:px-4">
       {/* Top Toolbar */}
-      <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4 mb-5 pb-4 border-b border-white/[0.06]">
-        {/* Left Side: Today button & Month Chevron controls & Month/Year text */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleToday}
-            className="px-3.5 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-xs font-mono font-medium text-[#d2d9e4] border border-white/[0.08] transition-colors cursor-pointer"
-          >
-            Today
-          </button>
+      <div className="w-full flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-4 sm:mb-5 pb-3 sm:pb-4 border-b border-white/[0.06]">
+        {/* Left Side: Month / Year Title & Controls */}
+        <div className="flex items-center justify-between sm:justify-start gap-2.5 sm:gap-3">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleToday}
+              className="px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-[11px] sm:text-xs font-mono font-medium text-[#d2d9e4] border border-white/[0.08] transition-colors cursor-pointer"
+            >
+              Today
+            </button>
 
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={handlePrevMonth}
-              className="p-1.5 rounded-lg hover:bg-white/[0.06] text-[#8e98a8] hover:text-white transition-colors cursor-pointer"
-              aria-label="Previous Month"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="flex items-center gap-0.5">
+              <button
+                type="button"
+                onClick={handlePrevMonth}
+                className="p-1 sm:p-1.5 rounded-lg hover:bg-white/[0.06] text-[#8e98a8] hover:text-white transition-colors cursor-pointer"
+                aria-label="Previous Month"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
-            </button>
-            <button
-              type="button"
-              onClick={handleNextMonth}
-              className="p-1.5 rounded-lg hover:bg-white/[0.06] text-[#8e98a8] hover:text-white transition-colors cursor-pointer"
-              aria-label="Next Month"
-            >
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+                <svg
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={handleNextMonth}
+                className="p-1 sm:p-1.5 rounded-lg hover:bg-white/[0.06] text-[#8e98a8] hover:text-white transition-colors cursor-pointer"
+                aria-label="Next Month"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-3.5 h-3.5 sm:w-4 sm:h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
-          <h2 className="text-base sm:text-lg font-semibold text-white tracking-[-0.01em] ml-1">
+          <h2 className="text-sm sm:text-base md:text-lg font-semibold text-white tracking-[-0.01em]">
             {MONTH_NAMES[month]} {year}
           </h2>
         </div>
 
-        {/* Right Side: Week | Month View Pills */}
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center bg-[#050608] p-1 rounded-xl border border-white/[0.06]">
+        {/* Right Side: Week | Month View Toggle */}
+        <div className="flex items-center justify-end">
+          <div className="flex items-center bg-[#050608] p-0.5 sm:p-1 rounded-xl border border-white/[0.06]">
             <button
               type="button"
               onClick={() => setViewMode("week")}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium rounded-lg transition-colors cursor-pointer ${
                 viewMode === "week"
                   ? "bg-white/[0.1] text-white shadow-sm font-semibold"
                   : "text-[#8e98a8] hover:text-white"
@@ -212,7 +214,7 @@ export default function XScheduler() {
             <button
               type="button"
               onClick={() => setViewMode("month")}
-              className={`px-3 py-1 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1 text-[11px] sm:text-xs font-medium rounded-lg transition-colors cursor-pointer ${
                 viewMode === "month"
                   ? "bg-white/[0.1] text-white shadow-sm font-semibold"
                   : "text-[#8e98a8] hover:text-white"
@@ -225,13 +227,13 @@ export default function XScheduler() {
       </div>
 
       {/* Main Calendar Card Structure */}
-      <div className="w-full bg-[#08090c] border border-white/[0.08] rounded-2xl overflow-hidden">
+      <div className="w-full bg-[#08090c] border border-white/[0.08] rounded-xl sm:rounded-2xl overflow-hidden shadow-lg">
         {/* Days of Week Header Row (MON - SUN) */}
         <div className="grid grid-cols-7 border-b border-white/[0.06] bg-[#08090c]">
           {DAYS_OF_WEEK.map((day) => (
             <div
               key={day}
-              className="py-3 text-center text-[11px] font-mono font-medium text-[#788290] tracking-wider border-r last:border-r-0 border-white/[0.04]"
+              className="py-2 sm:py-3 text-center text-[9px] sm:text-[11px] font-mono font-medium text-[#788290] tracking-wider border-r last:border-r-0 border-white/[0.04]"
             >
               {day}
             </div>
@@ -242,7 +244,6 @@ export default function XScheduler() {
         {viewMode === "month" ? (
           <div className="grid grid-cols-7 auto-rows-fr">
             {calendarCells.map((cell, idx) => {
-              // Real posts for this day
               const dayPosts = cell.isCurrentMonth
                 ? posts.filter(
                     (p) =>
@@ -261,17 +262,17 @@ export default function XScheduler() {
               return (
                 <div
                   key={idx}
-                  className={`min-h-[110px] sm:min-h-[125px] md:min-h-[140px] p-2 sm:p-2.5 border-b border-r last:border-r-0 border-white/[0.04] flex flex-col justify-between bg-[#08090c] ${
+                  className={`min-h-[85px] sm:min-h-[120px] md:min-h-[135px] p-1 sm:p-2 md:p-2.5 border-b border-r last:border-r-0 border-white/[0.04] flex flex-col justify-between bg-[#08090c] ${
                     cell.isCurrentMonth ? "text-white" : "text-white/20"
                   }`}
                 >
                   {/* Top Day Number */}
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-1">
                     <span
-                      className={`text-xs font-mono font-semibold ${
+                      className={`text-[10px] sm:text-xs font-mono font-semibold ${
                         cell.isCurrentMonth
                           ? isToday
-                            ? "w-5 h-5 rounded-full bg-[#17A2C6] text-[#061d24] flex items-center justify-center font-bold"
+                            ? "w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-[#17A2C6] text-[#061d24] flex items-center justify-center font-bold text-[9.5px] sm:text-[11px]"
                             : "text-[#8e98a8]"
                           : "text-white/20"
                       }`}
@@ -280,29 +281,29 @@ export default function XScheduler() {
                     </span>
                   </div>
 
-                  {/* Captured X Posts Container - Real Data Display */}
-                  <div className="flex flex-col gap-1.5 mt-auto">
+                  {/* Captured X Posts Container */}
+                  <div className="flex flex-col gap-1 sm:gap-1.5 mt-auto">
                     {dayPosts.map((post) => (
                       <div
                         key={post.id}
                         onClick={() => setPreviewPost(post)}
-                        className="bg-white text-black rounded-[8px] p-2 flex flex-col gap-1.5 shadow-sm hover:scale-[1.02] transition-transform cursor-pointer"
+                        className="bg-white text-black rounded-[5px] sm:rounded-[8px] p-1 sm:p-2 flex flex-col gap-1 shadow-sm hover:scale-[1.02] transition-transform cursor-pointer"
                       >
                         {/* Top: Solid Black X Logo & Time */}
                         <div className="flex items-center justify-between">
                           <svg
-                            className="w-3.5 h-3.5 fill-black shrink-0"
+                            className="w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 fill-black shrink-0"
                             viewBox="0 0 24 24"
                           >
                             <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                           </svg>
-                          <span className="font-mono text-[9px] font-medium text-neutral-500">
+                          <span className="font-mono text-[7.5px] sm:text-[9px] font-medium text-neutral-500">
                             {post.time}
                           </span>
                         </div>
 
                         {/* Post Text snippet */}
-                        <p className="text-[10px] font-sans font-medium text-neutral-900 line-clamp-2 leading-snug">
+                        <p className="text-[8.5px] sm:text-[10px] font-sans font-medium text-neutral-900 line-clamp-2 leading-snug">
                           {post.text}
                         </p>
                       </div>
@@ -314,14 +315,14 @@ export default function XScheduler() {
           </div>
         ) : (
           /* Week View */
-          <div className="grid grid-cols-7 min-h-[360px]">
+          <div className="grid grid-cols-7 min-h-[300px] sm:min-h-[360px]">
             {DAYS_OF_WEEK.map((dayName, dIdx) => (
               <div
                 key={dayName}
-                className="p-3 bg-[#08090c] border-r last:border-r-0 border-white/[0.04] flex flex-col justify-start"
+                className="p-2 sm:p-3 bg-[#08090c] border-r last:border-r-0 border-white/[0.04] flex flex-col justify-start"
               >
-                <div className="text-center pb-3 border-b border-white/[0.04] mb-3">
-                  <span className="text-xs font-mono text-[#8e98a8]">
+                <div className="text-center pb-2 sm:pb-3 border-b border-white/[0.04] mb-2 sm:mb-3">
+                  <span className="text-[10px] sm:text-xs font-mono text-[#8e98a8]">
                     {dIdx + 1}
                   </span>
                 </div>
@@ -333,12 +334,12 @@ export default function XScheduler() {
 
       {/* Post Preview Modal */}
       {previewPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
           <div
-            className="fixed inset-0 bg-black/60"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setPreviewPost(null)}
           />
-          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-6 shadow-2xl z-10 flex flex-col">
+          <div className="relative w-full max-w-md bg-[#0c0d12] border border-white/[0.1] rounded-2xl p-5 sm:p-6 shadow-2xl z-10 flex flex-col max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono text-[#8e98a8]">

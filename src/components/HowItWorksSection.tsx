@@ -465,20 +465,20 @@ export default function HowItWorksSection() {
     <section
       ref={sectionRef}
       id="how-it-works"
-      className="relative w-full bg-[#08090c] py-24 sm:py-32 md:py-40 px-6 sm:px-10 md:px-16 lg:px-20 select-none scroll-mt-6"
+      className="relative w-full bg-[#08090c] py-16 sm:py-24 md:py-36 px-4 sm:px-8 md:px-16 lg:px-20 select-none scroll-mt-6"
     >
       <div className="max-w-7xl mx-auto flex flex-col items-center">
         {/* Centered Small-Caps Kicker Heading */}
-        <div className="text-center mb-12 sm:mb-16 md:mb-20">
+        <div className="text-center mb-10 sm:mb-14 md:mb-18">
           <h2 className="text-sm sm:text-base font-medium text-[#17A2C6] [font-variant:small-caps] tracking-widest antialiased">
             how it works?
           </h2>
         </div>
 
         {/* 3 Horizontally Stacked Cards with Single-Run Scroll Decrypt Badges */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-10 xl:gap-12 items-stretch">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 xl:gap-12 items-stretch">
           {/* --- CARD 1: WATCHES X CONTENT --- */}
-          <div className="bg-[#0e0f14] rounded-2xl p-5 sm:p-6 flex flex-col">
+          <div className="bg-[#0e0f14] rounded-2xl p-4 sm:p-6 flex flex-col">
             {/* Top Graphic Box */}
             <div className="w-full aspect-[16/10] rounded-xl overflow-hidden bg-[#06131c] relative mb-6">
               <AsciiEyeCanvas />

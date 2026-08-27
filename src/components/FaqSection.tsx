@@ -71,11 +71,11 @@ export default function FaqSection() {
   return (
     <section
       id="faqs"
-      className="relative w-full bg-[#08090c] py-24 sm:py-32 md:py-40 px-6 sm:px-10 md:px-16 lg:px-20 select-none scroll-mt-6"
+      className="relative w-full bg-[#08090c] py-16 sm:py-24 md:py-36 px-4 sm:px-8 md:px-16 lg:px-20 select-none scroll-mt-6"
     >
       <div className="max-w-4xl mx-auto flex flex-col items-center">
         {/* Centered Small-Caps Kicker Heading matching How It Works */}
-        <div className="text-center mb-12 sm:mb-16 md:mb-20">
+        <div className="text-center mb-10 sm:mb-14 md:mb-18">
           <h2 className="text-sm sm:text-base font-medium text-[#17A2C6] [font-variant:small-caps] tracking-widest antialiased">
             faqs?
           </h2>
