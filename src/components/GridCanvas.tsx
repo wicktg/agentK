@@ -118,8 +118,8 @@ export default function GridCanvas() {
       ctx.textBaseline = "middle";
 
       const isMobile = width < 768;
-      // On mobile screens, shift the blue/white pattern boundaries down to remove top 25% of the pattern
-      const mobileTopCut = isMobile ? 0.18 : 0.0;
+      // On mobile screens, slightly offset the pattern to keep clean clearance below hero text
+      const mobileTopCut = isMobile ? 0.08 : 0.0;
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -132,7 +132,7 @@ export default function GridCanvas() {
           let isLeftSquare = false;
           let isRightCircle = false;
 
-          // Boundary curve for left cluster (shifted down on mobile)
+          // Boundary curve for left cluster
           const leftBound =
             0.36 + mobileTopCut + u * 1.28 + Math.sin(u * 12) * 0.04;
 
@@ -149,7 +149,7 @@ export default function GridCanvas() {
             }
           }
 
-          // Boundary curve for right cluster (shifted down on mobile)
+          // Boundary curve for right cluster
           const uRight = 1.0 - u;
           const rightBound =
             0.42 +
@@ -181,8 +181,8 @@ export default function GridCanvas() {
             else isLeftSquare = false;
           }
 
-          // Extra safety check: on mobile remove top 25% of pattern
-          if (isMobile && v < 0.52) {
+          // Keep safe clearance on mobile so pattern never overlaps hero text
+          if (isMobile && v < 0.43) {
             isLeftSquare = false;
             isRightCircle = false;
           }
@@ -196,8 +196,16 @@ export default function GridCanvas() {
           const bottomFade =
             v > 0.6 ? Math.max(0, 1 - Math.pow((v - 0.6) / 0.4, 1.2)) : 1.0;
 
+          // Smooth fade in near the threshold on mobile for the blue/white cluster
+          const topFade =
+            isMobile && v >= 0.43 && v < 0.49
+              ? Math.max(0, Math.min(1.0, (v - 0.43) / 0.06))
+              : 1.0;
+
+          const heroPatternAlpha = bottomFade * topFade;
+
           if (isLeftSquare) {
-            ctx.globalAlpha = bottomFade;
+            ctx.globalAlpha = heroPatternAlpha;
             const colorIndex = Math.floor(noiseL * PALETTE.length);
             ctx.fillStyle = PALETTE[colorIndex];
 
@@ -216,7 +224,7 @@ export default function GridCanvas() {
             }
             ctx.globalAlpha = 1.0;
           } else if (isRightCircle) {
-            ctx.globalAlpha = bottomFade;
+            ctx.globalAlpha = heroPatternAlpha;
             const colorIndex = Math.floor(noiseR * PALETTE.length);
             ctx.fillStyle = PALETTE[colorIndex];
 
