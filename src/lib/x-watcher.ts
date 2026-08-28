@@ -270,21 +270,55 @@ export function hasTargetMentionOrTag(
   const target = targetHandle.toLowerCase().replace(/^@/, "").trim();
   const legacy = tweetResult.legacy || tweetResult.tweet?.legacy || {};
 
-  // 1. Text & Note Tweet check
+  // 1. Text, Note Tweet & Longform Article check
+  const articleObj =
+    tweetResult.article?.article_results?.result ||
+    tweetResult.article ||
+    legacy.article ||
+    {};
+
+  const articleText = [
+    articleObj.title,
+    articleObj.preview_text,
+    articleObj.plain_text,
+    articleObj.content,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const cardBindingValues = (tweetResult.card?.legacy?.binding_values || []).map(
+    (b: any) => b?.value?.string_value || "",
+  );
+
   const fullText = (
-    tweetResult.note_tweet?.note_tweet_results?.result?.text ||
-    legacy.full_text ||
-    ""
+    (tweetResult.note_tweet?.note_tweet_results?.result?.text || "") +
+    " " +
+    (legacy.full_text || "") +
+    " " +
+    articleText +
+    " " +
+    cardBindingValues.join(" ")
   ).toLowerCase();
 
   if (isMentioningTarget(fullText, target)) {
     return true;
   }
 
-  // 2. User Mentions entity check
-  const mentions = legacy.entities?.user_mentions || [];
+  // 2. User Mentions entity check (legacy, note tweet, and article entities)
+  const legacyMentions = legacy.entities?.user_mentions || [];
+  const noteMentions =
+    tweetResult.note_tweet?.note_tweet_results?.result?.entity_set?.user_mentions ||
+    [];
+  const articleMentions = articleObj.entity_set?.user_mentions || [];
+
+  const allMentions = [
+    ...legacyMentions,
+    ...noteMentions,
+    ...articleMentions,
+  ];
+
   if (
-    mentions.some(
+    allMentions.some(
       (m: any) =>
         (m.screen_name || "").toLowerCase() === target ||
         (m.name || "").toLowerCase().includes(target),
@@ -511,10 +545,16 @@ export async function fetchFullTweetText(tweetId: string): Promise<string> {
               entry.content?.itemContent?.tweet_results?.result ||
               entry.item?.itemContent?.tweet_results?.result;
             if (tr) {
+              const articleObj =
+                tr.article?.article_results?.result || tr.article || {};
+              const articleText =
+                articleObj.plain_text ||
+                articleObj.content ||
+                articleObj.preview_text;
               const noteText = tr.note_tweet?.note_tweet_results?.result?.text;
               const legacyText = tr.legacy?.full_text;
-              if (noteText || legacyText) {
-                return noteText || legacyText;
+              if (articleText || noteText || legacyText) {
+                return articleText || noteText || legacyText;
               }
             }
           }
