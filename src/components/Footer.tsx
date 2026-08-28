@@ -14,7 +14,7 @@ export default function Footer() {
       {/* Minimal Social Icon */}
       <div className="flex items-center justify-center gap-3 mb-7">
         <a
-          href="https://x.com"
+          href="https://x.com/tryagentk"
           target="_blank"
           rel="noopener noreferrer"
           className="text-[#8e98a8] hover:text-[#17A2C6] transition-colors p-1.5 focus:outline-none"

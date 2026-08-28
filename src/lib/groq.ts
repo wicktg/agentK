@@ -1,5 +1,5 @@
 /**
- * Groq LLM Integration for Tweet Classification
+ * Groq LLM Integration for Tweet Classification & Contribution Summary Generation
  * Model: qwen/qwen3.8-27b
  * Evaluates whether a detected X post is a genuine contribution about:
  * - Technocore
@@ -44,7 +44,6 @@ export async function classifyContributionText(
     console.warn(
       "[Groq] GROQ_API_KEY is not configured. Falling back to heuristic keyword check.",
     );
-    // Fallback heuristic if Groq key is not yet populated
     const lower = (tweetContent || "").toLowerCase();
     const hasSubstantiveTopic =
       lower.includes("flop") ||
@@ -77,12 +76,13 @@ Strict Rules:
 - If the post is completely unrelated to Flop Network / $FLOP / Technocore / agentK (e.g., discussing other unrelated cryptocurrencies or non-Flop topics): respond ONLY with \`false\`.
 - Your output must be EXACTLY one word: either \`true\` or \`false\`. Do not include any other words, punctuation, markdown formatting, or reasoning.`;
 
+  const targetHandle = process.env.TARGET_MENTION_HANDLE || "haxexbc";
   const userPrompt = `Tweet Content to Classify:
 """
 ${tweetContent.trim()}
 """
 
-Is this post discussing or referencing Technocore, Agent Identity, Flop Network, Flop Testnet, $FLOP, or @boomerxbc? (true / false):`;
+Is this post discussing or referencing Technocore, Agent Identity, Flop Network, Flop Testnet, $FLOP, or @${targetHandle}? (true / false):`;
 
   try {
     const res = await fetch(GROQ_API_URL, {
@@ -132,4 +132,93 @@ Is this post discussing or referencing Technocore, Agent Identity, Flop Network,
       error: err.message,
     };
   }
+}
+
+/**
+ * Generate a concise 10–12 word statement explaining what contribution this post makes to Flop Network & Technocore
+ */
+export async function generateContributionSummary(
+  tweetContent: string,
+  authorHandle?: string,
+): Promise<string> {
+  const apiKey = getGroqApiKey();
+  const fallback =
+    "break down key ecosystem tokenomics and incentive mechanisms for Flop Network";
+
+  if (!apiKey) {
+    return fallback;
+  }
+
+  const systemPrompt = `You are an AI ecosystem and research analyst for Flop Network & Technocore.
+Analyze the provided X (Twitter) post and generate a concise, high-impact 10 to 12 word phrase that completes the sentence: "I published an X contribution: <url> where I [YOUR 10-12 WORDS HERE]".
+
+Strict Rules:
+- The phrase MUST start with a present-tense first-person active verb (e.g. "break down", "analyze", "explain", "outline", "explore", "evaluate", "highlight").
+- Do NOT include the words "where I" or "I" at the start.
+- The phrase MUST be strictly 10 to 12 words long.
+- It must describe the specific technical contribution, tokenomics insight, or ecosystem value provided in the tweet regarding Flop Network, $FLOP, or Technocore.
+- Do NOT include periods (.), quotes, brackets ([]), or prefix tags (e.g. "Summary:").
+- Output ONLY the 10 to 12 word phrase.`;
+
+  const userPrompt = `Post Content:
+"""
+${tweetContent.trim().slice(0, 1500)}
+"""
+
+Generate the 10-12 word phrase (starting with an active verb, no period, no brackets):`;
+
+  try {
+    const res = await fetch(GROQ_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: DEFAULT_GROQ_MODEL,
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+        temperature: 0.2,
+        max_tokens: 50,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      let summary = (data?.choices?.[0]?.message?.content || "")
+        .trim()
+        .replace(/^["'\[]+|[\]"']+$/g, "")
+        .replace(/^Summary:\s*/i, "")
+        .replace(/^Contribution:\s*/i, "")
+        .replace(/^Impact:\s*/i, "")
+        .replace(/^where\s+I\s+/i, "")
+        .replace(/[\[\]]/g, "")
+        .replace(/\.+$/, "") // Strip trailing period
+        .replace(/\s+/g, " ");
+
+      const words = summary.split(" ").filter(Boolean);
+      if (words.length >= 8 && words.length <= 15) {
+        return words.slice(0, 12).join(" ");
+      }
+    }
+    return fallback;
+  } catch (err: any) {
+    console.warn(
+      "[Groq] Summary generation error, using fallback:",
+      err.message,
+    );
+    return fallback;
+  }
+}
+
+/**
+ * Generate a concise contribution title / summary
+ */
+export async function generateContributionTitle(
+  tweetContent: string,
+  authorHandle?: string,
+): Promise<string> {
+  return generateContributionSummary(tweetContent, authorHandle);
 }

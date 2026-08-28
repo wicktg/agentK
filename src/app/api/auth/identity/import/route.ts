@@ -22,27 +22,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 1. Decrypt & validate PKCS#8 PEM with passphrase and derive canonical DID
-    const { did, valid } = loadAndValidateIdentity(pem, passphrase);
+    // 1. Decrypt & validate PKCS#8 PEM with passphrase, derive canonical DID and vault envelope
+    const { did, valid, encryptedSigningKey } = loadAndValidateIdentity(
+      pem,
+      passphrase,
+    );
 
-    // 2. Update profile in Supabase if configured
+    // 2. Persist DID and encrypted vault envelope in Supabase
     if (handle && isSupabaseConfigured()) {
       try {
         const supabase = getSupabaseAdmin();
-        await supabase
-          .from("profiles")
-          .update({ did, updated_at: new Date().toISOString() })
-          .eq("x_handle", handle);
+        await supabase.from("profiles").upsert(
+          {
+            x_handle: handle,
+            did,
+            encrypted_signing_key: encryptedSigningKey,
+            x_verified: true,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "x_handle" },
+        );
       } catch (dbErr) {
-        console.warn("[Supabase] Update imported DID error:", dbErr);
+        console.warn("[Supabase] Upsert imported DID/vault error:", dbErr);
       }
     }
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       valid,
       did,
     });
+
+    // Update user cookie with imported DID
+    const userCookie = req.cookies.get("agentk_user")?.value;
+    if (userCookie) {
+      try {
+        const u = JSON.parse(userCookie);
+        u.did = did;
+        response.cookies.set("agentk_user", JSON.stringify(u), {
+          httpOnly: false,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 30 * 24 * 60 * 60,
+          path: "/",
+        });
+      } catch {}
+    }
+
+    return response;
   } catch (err: any) {
     return NextResponse.json(
       {

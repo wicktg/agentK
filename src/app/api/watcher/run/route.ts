@@ -13,7 +13,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
-    const target = body?.targetHandle || "boomerxbc";
+    const target =
+      body?.targetHandle || process.env.TARGET_MENTION_HANDLE || "haxexbc";
 
     const summary = await runMentionMonitoringCycle(target);
 

@@ -17,6 +17,7 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS x_name TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS x_avatar_url TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS x_bio TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS x_verified BOOLEAN DEFAULT FALSE;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS encrypted_signing_key TEXT;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
 
 -- Add Unique Constraints if missing
@@ -46,13 +47,15 @@ CREATE TABLE IF NOT EXISTS verification_codes (
   verified_at TIMESTAMPTZ
 );
 
+ALTER TABLE verification_codes ADD COLUMN IF NOT EXISTS handle TEXT;
 ALTER TABLE verification_codes ADD COLUMN IF NOT EXISTS x_handle TEXT;
 ALTER TABLE verification_codes ADD COLUMN IF NOT EXISTS code TEXT;
 ALTER TABLE verification_codes ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
 ALTER TABLE verification_codes ADD COLUMN IF NOT EXISTS verified_at TIMESTAMPTZ;
 
 CREATE INDEX IF NOT EXISTS idx_verification_codes_code ON verification_codes(code);
-CREATE INDEX IF NOT EXISTS idx_verification_codes_handle ON verification_codes(x_handle);
+CREATE INDEX IF NOT EXISTS idx_verification_codes_x_handle ON verification_codes(x_handle);
+CREATE INDEX IF NOT EXISTS idx_verification_codes_handle ON verification_codes(handle);
 
 -- 3. User Sessions Table
 CREATE TABLE IF NOT EXISTS user_sessions (
@@ -107,9 +110,17 @@ ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS is_relevant BOOLEAN DEFAULT
 ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS llm_model TEXT;
 ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS llm_response TEXT;
 ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS llm_evaluated_at TIMESTAMPTZ;
+ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS technocore_room TEXT;
+ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS technocore_url TEXT;
+ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS technocore_title TEXT;
+ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS technocore_payload JSONB;
+ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS technocore_pushed_at TIMESTAMPTZ;
+ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS technocore_push_status TEXT;
+ALTER TABLE x_contributions ADD COLUMN IF NOT EXISTS technocore_seq INTEGER;
 
 CREATE INDEX IF NOT EXISTS idx_x_contributions_handle ON x_contributions(user_handle);
 CREATE INDEX IF NOT EXISTS idx_x_contributions_tweet_id ON x_contributions(tweet_id);
+CREATE INDEX IF NOT EXISTS idx_x_contributions_room ON x_contributions(technocore_room);
 CREATE INDEX IF NOT EXISTS idx_x_contributions_status ON x_contributions(status);
 CREATE INDEX IF NOT EXISTS idx_x_contributions_is_relevant ON x_contributions(is_relevant);
 CREATE INDEX IF NOT EXISTS idx_x_contributions_posted_at ON x_contributions(posted_at DESC);
@@ -126,3 +137,42 @@ CREATE POLICY "Public read profiles" ON profiles FOR SELECT USING (true);
 
 DROP POLICY IF EXISTS "Public read contributions" ON x_contributions;
 CREATE POLICY "Public read contributions" ON x_contributions FOR SELECT USING (true);
+
+-- 5. Whitelist Table
+CREATE TABLE IF NOT EXISTS whitelist (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  x_username TEXT UNIQUE NOT NULL,
+  status TEXT DEFAULT 'whitelisted',
+  is_whitelisted BOOLEAN DEFAULT TRUE,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE whitelist ADD COLUMN IF NOT EXISTS x_username TEXT;
+ALTER TABLE whitelist ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'whitelisted';
+ALTER TABLE whitelist ADD COLUMN IF NOT EXISTS is_whitelisted BOOLEAN DEFAULT TRUE;
+ALTER TABLE whitelist ADD COLUMN IF NOT EXISTS notes TEXT;
+ALTER TABLE whitelist ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'whitelist_x_username_key'
+  ) THEN
+    BEGIN
+      ALTER TABLE whitelist ADD CONSTRAINT whitelist_x_username_key UNIQUE (x_username);
+    EXCEPTION WHEN duplicate_table OR duplicate_object THEN
+      NULL;
+    END;
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_whitelist_x_username ON whitelist(x_username);
+CREATE INDEX IF NOT EXISTS idx_whitelist_status ON whitelist(status);
+CREATE INDEX IF NOT EXISTS idx_whitelist_is_whitelisted ON whitelist(is_whitelisted);
+
+ALTER TABLE whitelist ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public read whitelist" ON whitelist;
+CREATE POLICY "Public read whitelist" ON whitelist FOR SELECT USING (true);

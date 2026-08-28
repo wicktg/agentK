@@ -16,11 +16,20 @@ import { useAuth } from "@/context/AuthContext";
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuth();
   const [modalOpen, setModalOpen] = useState(false);
-  const [view, setView] = useState<"landing" | "loading" | "dashboard">("landing");
+  const [view, setView] = useState<"landing" | "loading" | "dashboard">(
+    "landing",
+  );
 
   useEffect(() => {
-    if (!isLoading && isAuthenticated && view === "landing") {
-      setView("dashboard");
+    if (!isLoading) {
+      if (isAuthenticated && view === "landing") {
+        setView("dashboard");
+      } else if (
+        !isAuthenticated &&
+        (view === "dashboard" || view === "loading")
+      ) {
+        setView("landing");
+      }
     }
   }, [isAuthenticated, isLoading, view]);
 

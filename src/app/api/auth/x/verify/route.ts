@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyXBioChallenge } from "@/lib/x-watcher";
-import { generateDIDForHandle, generateSessionToken } from "@/lib/crypto";
+import { generateSessionToken, generateDIDForHandle } from "@/lib/crypto";
 import { getSupabaseAdmin, isSupabaseConfigured } from "@/lib/supabase/server";
+import { isUserWhitelisted } from "@/lib/supabase/whitelist";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,6 +18,21 @@ export async function POST(req: NextRequest) {
         },
         { status: 400 },
       );
+    }
+
+    // Whitelist Verification
+    if (isSupabaseConfigured()) {
+      const whitelisted = await isUserWhitelisted(handle);
+      if (!whitelisted) {
+        return NextResponse.json(
+          {
+            success: false,
+            notWhitelisted: true,
+            error: "You are not whitelisted to use agentK.",
+          },
+          { status: 403 },
+        );
+      }
     }
 
     // 1. Execute live watcher bio verification
@@ -36,29 +52,54 @@ export async function POST(req: NextRequest) {
     }
 
     const xUser = verification.user;
-    const did = generateDIDForHandle(xUser.handle);
     const sessionToken = generateSessionToken();
+    let isExistingUser = false;
+    let hasIdentity = false;
+    let did = "";
 
     // 2. Persist in Supabase if configured
     if (isSupabaseConfigured()) {
       try {
         const supabase = getSupabaseAdmin();
 
+        // Check if user already exists in profiles with an established identity
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("id, did, encrypted_signing_key, x_handle, x_verified")
+          .ilike("x_handle", xUser.handle)
+          .maybeSingle();
+
+        if (existingProfile && existingProfile.encrypted_signing_key) {
+          did = existingProfile.did || "";
+          isExistingUser = true;
+          hasIdentity = true;
+          console.log(
+            `[Auth Verify] Returning existing user @${xUser.handle} with established DID: ${did}`,
+          );
+        } else {
+          isExistingUser = false;
+          hasIdentity = false;
+          // Provide provisional DID so database not-null constraint is never violated
+          did = existingProfile?.did || generateDIDForHandle(xUser.handle);
+          console.log(
+            `[Auth Verify] New user @${xUser.handle} detected. Routing to Agent ID setup.`,
+          );
+        }
+
         // Upsert user profile
+        const upsertPayload: Record<string, any> = {
+          x_handle: xUser.handle,
+          x_name: xUser.name,
+          x_avatar_url: xUser.avatarUrl,
+          x_bio: xUser.bio,
+          x_verified: true,
+          did: did,
+          updated_at: new Date().toISOString(),
+        };
+
         const { data: profile } = await supabase
           .from("profiles")
-          .upsert(
-            {
-              did,
-              x_handle: xUser.handle,
-              x_name: xUser.name,
-              x_avatar_url: xUser.avatarUrl,
-              x_bio: xUser.bio,
-              x_verified: true,
-              updated_at: new Date().toISOString(),
-            },
-            { onConflict: "x_handle" },
-          )
+          .upsert(upsertPayload, { onConflict: "x_handle" })
           .select()
           .single();
 
@@ -79,7 +120,7 @@ export async function POST(req: NextRequest) {
           });
         }
       } catch (dbErr) {
-        console.warn("[Supabase] Upsert error:", dbErr);
+        console.warn("[Supabase] Upsert error during verification:", dbErr);
       }
     }
 
@@ -88,7 +129,7 @@ export async function POST(req: NextRequest) {
       handle: xUser.handle,
       name: xUser.name,
       avatarUrl: xUser.avatarUrl,
-      did,
+      did: did || "",
       verified: true,
       verifiedAt: new Date().toISOString(),
     };
@@ -96,6 +137,8 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({
       success: true,
       verified: true,
+      isExistingUser,
+      hasIdentity,
       user: userPayload,
     });
 

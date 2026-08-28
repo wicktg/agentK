@@ -6,7 +6,10 @@ export interface RegisteredUser {
   x_handle: string;
   x_name?: string;
   x_verified?: boolean;
+  encrypted_signing_key?: string;
 }
+
+export type ValidTweetType = "post" | "article" | "thread";
 
 export interface ContributionRecord {
   id?: string;
@@ -16,7 +19,7 @@ export interface ContributionRecord {
   did?: string;
   profile_id?: string;
   content?: string;
-  tweet_type?: "post" | "reply" | "thread" | "article" | "quote";
+  tweet_type?: ValidTweetType;
   posted_at?: string;
   status?: "detected" | "replied" | "rejected" | "ignored" | "failed";
   rejection_reason?: string;
@@ -27,6 +30,13 @@ export interface ContributionRecord {
   reply_tweet_id?: string;
   reply_media_id?: string;
   reply_at?: string;
+  technocore_room?: string;
+  technocore_url?: string;
+  technocore_title?: string;
+  technocore_payload?: any;
+  technocore_pushed_at?: string;
+  technocore_push_status?: string;
+  technocore_seq?: number;
   error_message?: string;
   created_at?: string;
   updated_at?: string;
@@ -45,12 +55,15 @@ export async function getRegisteredUsers(): Promise<RegisteredUser[]> {
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, did, x_handle, x_name, x_verified")
+      .select("id, did, x_handle, x_name, x_verified, encrypted_signing_key")
       .not("x_handle", "is", null)
       .eq("x_verified", true);
 
     if (error) {
-      console.error("[Supabase] Error fetching registered users:", error.message);
+      console.error(
+        "[Supabase] Error fetching registered users:",
+        error.message,
+      );
       return [];
     }
 
@@ -60,6 +73,7 @@ export async function getRegisteredUsers(): Promise<RegisteredUser[]> {
       x_handle: row.x_handle.replace(/^@/, "").toLowerCase().trim(),
       x_name: row.x_name,
       x_verified: row.x_verified,
+      encrypted_signing_key: row.encrypted_signing_key,
     }));
   } catch (err: any) {
     console.error("[Supabase] Exception in getRegisteredUsers:", err.message);
@@ -71,7 +85,7 @@ export async function getRegisteredUsers(): Promise<RegisteredUser[]> {
  * Get existing contribution record by tweet ID
  */
 export async function getExistingContribution(
-  tweetId: string
+  tweetId: string,
 ): Promise<ContributionRecord | null> {
   if (!isSupabaseConfigured()) {
     return null;
@@ -99,10 +113,14 @@ export async function getExistingContribution(
  * Check if user has already made a successful recorded contribution on a given calendar day (YYYY-MM-DD)
  * Spam control: allows ONLY 1 recorded contribution per calendar day.
  */
+/**
+ * Check if user has already made a successful recorded contribution on a given calendar day (YYYY-MM-DD)
+ * Spam control: allows ONLY 1 recorded contribution per calendar day.
+ */
 export async function hasUserContributedOnDate(
   userHandle: string,
   dateStr: string, // "YYYY-MM-DD"
-  excludeTweetId?: string
+  excludeTweetId?: string,
 ): Promise<boolean> {
   if (!isSupabaseConfigured()) {
     return false;
@@ -112,12 +130,14 @@ export async function hasUserContributedOnDate(
     const supabase = getSupabaseAdmin();
     const cleanHandle = userHandle.toLowerCase().replace(/^@/, "").trim();
 
-    // Query contributions for this user
+    // Query contributions for this user that are either replied or pushed to technocore
     let query = supabase
       .from("x_contributions")
-      .select("id, tweet_id, status, is_relevant, posted_at, created_at")
+      .select(
+        "id, tweet_id, status, is_relevant, posted_at, created_at, technocore_push_status, technocore_pushed_at, technocore_payload",
+      )
       .eq("user_handle", cleanHandle)
-      .eq("status", "replied"); // only count successful recorded contributions
+      .or("status.eq.replied,technocore_push_status.eq.pushed");
 
     if (excludeTweetId) {
       query = query.neq("tweet_id", excludeTweetId);
@@ -132,30 +152,71 @@ export async function hasUserContributedOnDate(
       return rowDate === dateStr;
     });
   } catch (err: any) {
-    console.warn("[Supabase] Warning checking daily contribution limit:", err.message);
+    console.warn(
+      "[Supabase] Warning checking daily contribution limit:",
+      err.message,
+    );
     return false;
   }
 }
 
 /**
- * Check if a tweet has already been recorded and completely finished
+ * Check if a tweet's contribution has already been pushed to Technocore
  */
-export async function isTweetRecorded(tweetId: string): Promise<boolean> {
+export async function isTechnocoreAlreadyPushed(
+  tweetId: string,
+): Promise<boolean> {
   const existing = await getExistingContribution(tweetId);
   if (!existing) return false;
-  // If already replied, rejected, or ignored, consider it finished
   return (
-    existing.status === "replied" ||
-    existing.status === "rejected" ||
-    existing.is_relevant === false
+    existing.technocore_push_status === "pushed" ||
+    !!existing.technocore_pushed_at ||
+    (!!existing.technocore_payload && !!existing.technocore_payload.sig)
   );
+}
+
+/**
+ * Fetch pending / backlog contributions that need processing or reply dispatch (FIFO order)
+ */
+export async function getPendingBacklogContributions(
+  limit: number = 20,
+): Promise<ContributionRecord[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data, error } = await supabase
+      .from("x_contributions")
+      .select("*")
+      .in("status", ["detected", "pending_reply", "failed"])
+      .eq("is_relevant", true)
+      .is("reply_tweet_id", null)
+      .order("posted_at", { ascending: true }) // Process oldest first (FIFO)
+      .limit(limit);
+
+    if (error) {
+      console.warn(
+        "[Supabase] Warning fetching pending backlog contributions:",
+        error.message,
+      );
+      return [];
+    }
+
+    return (data as ContributionRecord[]) || [];
+  } catch (err: any) {
+    console.warn(
+      "[Supabase] Exception fetching pending backlog contributions:",
+      err.message,
+    );
+    return [];
+  }
 }
 
 /**
  * Record a newly detected mention/tag in Supabase.
  */
 export async function recordNewContribution(
-  contribution: ContributionRecord
+  contribution: ContributionRecord,
 ): Promise<{ success: boolean; record?: ContributionRecord; isNew: boolean }> {
   if (!isSupabaseConfigured()) {
     return { success: true, record: contribution, isNew: true };
@@ -171,7 +232,11 @@ export async function recordNewContribution(
       did: contribution.did || null,
       profile_id: contribution.profile_id || null,
       content: contribution.content || "",
-      tweet_type: contribution.tweet_type || "post",
+      tweet_type:
+        contribution.tweet_type === "article" ||
+        contribution.tweet_type === "thread"
+          ? contribution.tweet_type
+          : "post",
       posted_at: contribution.posted_at || new Date().toISOString(),
       status: contribution.status || "detected",
       rejection_reason: contribution.rejection_reason || null,
@@ -182,6 +247,12 @@ export async function recordNewContribution(
       reply_tweet_id: contribution.reply_tweet_id || null,
       reply_media_id: contribution.reply_media_id || null,
       reply_at: contribution.reply_at || null,
+      technocore_room: contribution.technocore_room || null,
+      technocore_url: contribution.technocore_url || null,
+      technocore_title: contribution.technocore_title || null,
+      technocore_payload: contribution.technocore_payload || null,
+      technocore_pushed_at: contribution.technocore_pushed_at || null,
+      technocore_push_status: contribution.technocore_push_status || null,
       error_message: contribution.error_message || null,
       updated_at: new Date().toISOString(),
     };
@@ -205,12 +276,12 @@ export async function recordNewContribution(
 }
 
 /**
- * Update contribution record with LLM evaluation and agent reply result
+ * Update contribution record with LLM evaluation, agent reply, and Technocore payload
  */
 export async function updateContributionReplyStatus(
   tweetId: string,
   updates: {
-    status: "replied" | "rejected" | "failed" | "ignored";
+    status?: "replied" | "rejected" | "failed" | "ignored" | "detected";
     rejection_reason?: string;
     is_relevant?: boolean;
     llm_model?: string;
@@ -219,8 +290,15 @@ export async function updateContributionReplyStatus(
     reply_tweet_id?: string;
     reply_media_id?: string;
     reply_at?: string;
+    technocore_room?: string;
+    technocore_url?: string;
+    technocore_title?: string;
+    technocore_payload?: any;
+    technocore_pushed_at?: string;
+    technocore_push_status?: string;
+    technocore_seq?: number;
     error_message?: string;
-  }
+  },
 ): Promise<boolean> {
   if (!isSupabaseConfigured()) {
     return true;
@@ -229,19 +307,43 @@ export async function updateContributionReplyStatus(
   try {
     const supabase = getSupabaseAdmin();
     const updatePayload: Record<string, any> = {
-      status: updates.status,
       updated_at: new Date().toISOString(),
     };
 
-    if (updates.rejection_reason !== undefined) updatePayload.rejection_reason = updates.rejection_reason;
-    if (updates.is_relevant !== undefined) updatePayload.is_relevant = updates.is_relevant;
-    if (updates.llm_model !== undefined) updatePayload.llm_model = updates.llm_model;
-    if (updates.llm_response !== undefined) updatePayload.llm_response = updates.llm_response;
-    if (updates.llm_evaluated_at !== undefined) updatePayload.llm_evaluated_at = updates.llm_evaluated_at;
-    if (updates.reply_tweet_id !== undefined) updatePayload.reply_tweet_id = updates.reply_tweet_id;
-    if (updates.reply_media_id !== undefined) updatePayload.reply_media_id = updates.reply_media_id;
-    if (updates.reply_at !== undefined) updatePayload.reply_at = updates.reply_at;
-    if (updates.error_message !== undefined) updatePayload.error_message = updates.error_message;
+    if (updates.status !== undefined) updatePayload.status = updates.status;
+
+    if (updates.rejection_reason !== undefined)
+      updatePayload.rejection_reason = updates.rejection_reason;
+    if (updates.is_relevant !== undefined)
+      updatePayload.is_relevant = updates.is_relevant;
+    if (updates.llm_model !== undefined)
+      updatePayload.llm_model = updates.llm_model;
+    if (updates.llm_response !== undefined)
+      updatePayload.llm_response = updates.llm_response;
+    if (updates.llm_evaluated_at !== undefined)
+      updatePayload.llm_evaluated_at = updates.llm_evaluated_at;
+    if (updates.reply_tweet_id !== undefined)
+      updatePayload.reply_tweet_id = updates.reply_tweet_id;
+    if (updates.reply_media_id !== undefined)
+      updatePayload.reply_media_id = updates.reply_media_id;
+    if (updates.reply_at !== undefined)
+      updatePayload.reply_at = updates.reply_at;
+    if (updates.technocore_room !== undefined)
+      updatePayload.technocore_room = updates.technocore_room;
+    if (updates.technocore_url !== undefined)
+      updatePayload.technocore_url = updates.technocore_url;
+    if (updates.technocore_title !== undefined)
+      updatePayload.technocore_title = updates.technocore_title;
+    if (updates.technocore_payload !== undefined)
+      updatePayload.technocore_payload = updates.technocore_payload;
+    if (updates.technocore_pushed_at !== undefined)
+      updatePayload.technocore_pushed_at = updates.technocore_pushed_at;
+    if (updates.technocore_push_status !== undefined)
+      updatePayload.technocore_push_status = updates.technocore_push_status;
+    if (updates.technocore_seq !== undefined)
+      updatePayload.technocore_seq = updates.technocore_seq;
+    if (updates.error_message !== undefined)
+      updatePayload.error_message = updates.error_message;
 
     const { error } = await supabase
       .from("x_contributions")
@@ -249,13 +351,19 @@ export async function updateContributionReplyStatus(
       .eq("tweet_id", tweetId);
 
     if (error) {
-      console.error("[Supabase] Error updating contribution status:", error.message);
+      console.error(
+        "[Supabase] Error updating contribution status:",
+        error.message,
+      );
       return false;
     }
 
     return true;
   } catch (err: any) {
-    console.error("[Supabase] Exception updating contribution status:", err.message);
+    console.error(
+      "[Supabase] Exception updating contribution status:",
+      err.message,
+    );
     return false;
   }
 }
@@ -263,7 +371,9 @@ export async function updateContributionReplyStatus(
 /**
  * Fetch confirmed/relevant contributions for dashboard calendar display
  */
-export async function getContributions(userHandle?: string): Promise<ContributionRecord[]> {
+export async function getContributions(
+  userHandle?: string,
+): Promise<ContributionRecord[]> {
   if (!isSupabaseConfigured()) {
     return [];
   }

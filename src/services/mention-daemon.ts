@@ -1,6 +1,6 @@
 /**
- * 120-Second Background Mention Daemon
- * Runs every 120 seconds to scan registered Supabase accounts for @boomerxbc mentions.
+ * 300-Second (5-Minute) Background Mention Daemon
+ * Runs every 300 seconds to scan registered Supabase accounts for @boomerxbc mentions.
  */
 
 import {
@@ -8,7 +8,7 @@ import {
   CycleSummary,
 } from "../lib/mention-monitor";
 
-const INTERVAL_MS = 120 * 1000; // 120 seconds
+const INTERVAL_MS = 300 * 1000; // 300 seconds (5 minutes)
 let isRunning = false;
 let intervalHandle: NodeJS.Timeout | null = null;
 let lastCycleSummary: CycleSummary | null = null;
@@ -24,11 +24,12 @@ export async function executeWatcherStep() {
     const timestamp = new Date().toLocaleTimeString();
     console.log(`\n======================================================`);
     console.log(
-      `[Daemon] [${timestamp}] Running 120s Mention Monitoring Cycle`,
+      `[Daemon] [${timestamp}] Running 300s Mention Monitoring Cycle`,
     );
     console.log(`======================================================`);
 
-    lastCycleSummary = await runMentionMonitoringCycle("boomerxbc");
+    const target = process.env.TARGET_MENTION_HANDLE || "haxexbc";
+    lastCycleSummary = await runMentionMonitoringCycle(target);
   } catch (err: any) {
     console.error("[Daemon] Uncaught error in monitoring cycle:", err.message);
   } finally {
@@ -37,7 +38,7 @@ export async function executeWatcherStep() {
 }
 
 /**
- * Start the 120-second background daemon loop
+ * Start the 300-second background daemon loop
  */
 export function startMentionWatcherDaemon() {
   if (intervalHandle) {
@@ -45,11 +46,11 @@ export function startMentionWatcherDaemon() {
     return;
   }
 
-  console.log(`[Daemon] Starting 120-second Mention Watcher Daemon...`);
+  console.log(`[Daemon] Starting 300-second Mention Watcher Daemon...`);
   // Run immediately on start
   executeWatcherStep();
 
-  // Schedule recurring 120-second interval
+  // Schedule recurring 300-second interval
   intervalHandle = setInterval(executeWatcherStep, INTERVAL_MS);
 }
 
@@ -68,7 +69,7 @@ export function getDaemonStatus() {
   return {
     active: Boolean(intervalHandle),
     isProcessing: isRunning,
-    intervalSeconds: 120,
+    intervalSeconds: 300,
     lastSummary: lastCycleSummary,
   };
 }

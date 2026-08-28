@@ -26,7 +26,10 @@ export interface AgentPostResult {
 
 const FALLBACK_CREATE_TWEET_QID = "WXTdKnLddrQOunD6MhWi3g";
 let _cachedCreateTweetQid: string = "WXTdKnLddrQOunD6MhWi3g";
-const _cachedMediaUploads: Record<string, { mediaId: string; expiresAt: number }> = {};
+const _cachedMediaUploads: Record<
+  string,
+  { mediaId: string; expiresAt: number }
+> = {};
 
 const TWEET_FEATURES = {
   communities_web_enable_tweet_community_results_fetch: true,
@@ -54,9 +57,7 @@ export function getAgentCredentials(): { authToken: string; ct0: string } {
   const authToken = (process.env.AGENT_TWITTER_AUTH_TOKEN || "")
     .replace(/\r$/, "")
     .trim();
-  const ct0 = (process.env.AGENT_TWITTER_CT0 || "")
-    .replace(/\r$/, "")
-    .trim();
+  const ct0 = (process.env.AGENT_TWITTER_CT0 || "").replace(/\r$/, "").trim();
   return { authToken, ct0 };
 }
 
@@ -80,6 +81,7 @@ export function makeAgentHeaders(): Record<string, string> {
     "X-Twitter-Auth-Type": "OAuth2Session",
     "X-Twitter-Active-User": "yes",
     "X-Twitter-Client-Language": "en",
+    Origin: "https://x.com",
     Referer: "https://x.com/",
     Cookie: `auth_token=${authToken}; ct0=${ct0}`,
   };
@@ -125,12 +127,14 @@ export async function discoverCreateTweetQid(): Promise<string> {
           });
           if (sRes.ok) {
             const body = await sRes.text();
-            const m1 = /queryId:"([\w-]{15,})",operationName:"CreateTweet"/.exec(body);
+            const m1 =
+              /queryId:"([\w-]{15,})",operationName:"CreateTweet"/.exec(body);
             if (m1) {
               _cachedCreateTweetQid = m1[1];
               return m1[1];
             }
-            const m2 = /operationName:"CreateTweet",queryId:"([\w-]{15,})"/.exec(body);
+            const m2 =
+              /operationName:"CreateTweet",queryId:"([\w-]{15,})"/.exec(body);
             if (m2) {
               _cachedCreateTweetQid = m2[1];
               return m2[1];
@@ -140,7 +144,10 @@ export async function discoverCreateTweetQid(): Promise<string> {
       }
     }
   } catch (err) {
-    console.warn("[Agent] Dynamic queryId discovery failed, using fallback:", err);
+    console.warn(
+      "[Agent] Dynamic queryId discovery failed, using fallback:",
+      err,
+    );
   }
 
   _cachedCreateTweetQid = FALLBACK_CREATE_TWEET_QID;
@@ -151,13 +158,21 @@ export async function discoverCreateTweetQid(): Promise<string> {
  * Upload a banner image to X using the chunked / multipart media upload endpoint
  */
 export async function uploadBannerMediaToX(
-  variantOrPath: "recorded" | "rejected" | string = "recorded"
+  variantOrPath: "recorded" | "rejected" | string = "recorded",
 ): Promise<string> {
   let filePath: string;
   if (variantOrPath === "recorded") {
-    filePath = path.join(process.cwd(), "public", "contribution-recorded-banner.png");
+    filePath = path.join(
+      process.cwd(),
+      "public",
+      "contribution-recorded-banner.png",
+    );
   } else if (variantOrPath === "rejected") {
-    filePath = path.join(process.cwd(), "public", "contribution-rejected-banner.png");
+    filePath = path.join(
+      process.cwd(),
+      "public",
+      "contribution-rejected-banner.png",
+    );
   } else {
     filePath = variantOrPath;
   }
@@ -179,7 +194,7 @@ export async function uploadBannerMediaToX(
   const { authToken, ct0 } = getAgentCredentials();
   if (!authToken || !ct0) {
     throw new Error(
-      "Agent credentials (AGENT_TWITTER_AUTH_TOKEN / AGENT_TWITTER_CT0) are not configured."
+      "Agent credentials (AGENT_TWITTER_AUTH_TOKEN / AGENT_TWITTER_CT0) are not configured.",
     );
   }
 
@@ -193,17 +208,20 @@ export async function uploadBannerMediaToX(
     media_category: "tweet_image",
   });
 
-  const initRes = await fetch(`${uploadEndpoint}?${initParams.toString()}`, {
+  const initRes = await fetch(uploadEndpoint, {
     method: "POST",
     headers: {
       ...makeAgentHeaders(),
       "Content-Type": "application/x-www-form-urlencoded",
     },
+    body: initParams.toString(),
   });
 
   if (!initRes.ok) {
     const errText = await initRes.text();
-    throw new Error(`X Media Upload INIT failed (${initRes.status}): ${errText}`);
+    throw new Error(
+      `X Media Upload INIT failed (${initRes.status}): ${errText}`,
+    );
   }
 
   const initData = await initRes.json();
@@ -235,7 +253,9 @@ export async function uploadBannerMediaToX(
 
   if (!appendRes.ok) {
     const errText = await appendRes.text();
-    throw new Error(`X Media Upload APPEND failed (${appendRes.status}): ${errText}`);
+    throw new Error(
+      `X Media Upload APPEND failed (${appendRes.status}): ${errText}`,
+    );
   }
 
   // STEP 3: FINALIZE
@@ -244,17 +264,20 @@ export async function uploadBannerMediaToX(
     media_id: mediaId,
   });
 
-  const finalizeRes = await fetch(`${uploadEndpoint}?${finalizeParams.toString()}`, {
+  const finalizeRes = await fetch(uploadEndpoint, {
     method: "POST",
     headers: {
       ...makeAgentHeaders(),
       "Content-Type": "application/x-www-form-urlencoded",
     },
+    body: finalizeParams.toString(),
   });
 
   if (!finalizeRes.ok) {
     const errText = await finalizeRes.text();
-    throw new Error(`X Media Upload FINALIZE failed (${finalizeRes.status}): ${errText}`);
+    throw new Error(
+      `X Media Upload FINALIZE failed (${finalizeRes.status}): ${errText}`,
+    );
   }
 
   // Cache media_id for 15 minutes
@@ -273,7 +296,7 @@ export async function uploadBannerMediaToX(
  */
 export async function replyToTweetWithBannerOnly(
   inReplyToTweetId: string,
-  variant: "recorded" | "rejected" | string = "recorded"
+  variant: "recorded" | "rejected" | string = "recorded",
 ): Promise<AgentPostResult> {
   const cleanTweetId = inReplyToTweetId.trim();
   if (!cleanTweetId) {
@@ -283,7 +306,8 @@ export async function replyToTweetWithBannerOnly(
   if (!isAgentConfigured()) {
     return {
       success: false,
-      error: "AGENT_TWITTER_AUTH_TOKEN and AGENT_TWITTER_CT0 are not configured.",
+      error:
+        "AGENT_TWITTER_AUTH_TOKEN and AGENT_TWITTER_CT0 are not configured.",
     };
   }
 
@@ -357,9 +381,7 @@ export async function replyToTweetWithBannerOnly(
 
     const legacy = createResult?.legacy || {};
     const replyTweetId =
-      createResult?.rest_id ||
-      legacy.id_str ||
-      `reply-${Date.now()}`;
+      createResult?.rest_id || legacy.id_str || `reply-${Date.now()}`;
     const createdAt = legacy.created_at || new Date().toISOString();
 
     return {

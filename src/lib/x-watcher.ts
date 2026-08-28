@@ -51,14 +51,18 @@ export function getWatcherCredentials(): { authToken: string; ct0: string } {
     process.env.TWITTER_AUTH_TOKEN ||
     process.env.X_AUTH_TOKEN ||
     ""
-  ).replace(/\r$/, "").trim();
+  )
+    .replace(/\r$/, "")
+    .trim();
 
   const ct0 = (
     process.env.WATCHER_TWITTER_CT0 ||
     process.env.TWITTER_CT0 ||
     process.env.X_CT0 ||
     ""
-  ).replace(/\r$/, "").trim();
+  )
+    .replace(/\r$/, "")
+    .trim();
 
   return { authToken, ct0 };
 }
@@ -110,7 +114,7 @@ export async function fetchXProfile(handle: string): Promise<XProfile | null> {
       });
 
       const url = `https://x.com/i/api/graphql/${queryId}/UserByScreenName?variables=${encodeURIComponent(
-        variables
+        variables,
       )}&features=${encodeURIComponent(features)}`;
 
       const res = await fetch(url, {
@@ -124,13 +128,18 @@ export async function fetchXProfile(handle: string): Promise<XProfile | null> {
         if (userRes) {
           const legacy =
             userRes.legacy || userRes.core?.user_results?.result?.legacy || {};
-          const name = legacy.name || userRes.core?.name || cleanHandle;
-          const bio = legacy.description || "";
-          let avatarUrl = legacy.profile_image_url_https || "";
+          const name = userRes.core?.name || legacy.name || cleanHandle;
+          const bio =
+            userRes.profile_bio?.description ||
+            legacy.description ||
+            userRes.core?.user_results?.result?.legacy?.description ||
+            "";
+          let avatarUrl =
+            userRes.avatar?.image_url || legacy.profile_image_url_https || "";
           avatarUrl = avatarUrl.replace("_normal.", "_400x400.");
 
           return {
-            handle: cleanHandle,
+            handle: userRes.core?.screen_name || cleanHandle,
             name,
             bio,
             avatarUrl: avatarUrl || `https://unavatar.io/x/${cleanHandle}`,
@@ -188,7 +197,7 @@ export async function fetchXProfile(handle: string): Promise<XProfile | null> {
  */
 export async function verifyXBioChallenge(
   handle: string,
-  expectedCode: string
+  expectedCode: string,
 ): Promise<VerificationResult> {
   const cleanHandle = handle.replace(/^@/, "").trim();
   const cleanExpectedCode = expectedCode.trim();
@@ -231,11 +240,11 @@ export async function verifyXBioChallenge(
 }
 
 /**
- * Check if text contains mentions/tags of target handle (@boomerxbc)
+ * Check if text contains mentions/tags of target handle (@haxexbc)
  */
 export function isMentioningTarget(
   text: string,
-  targetHandle: string = "boomerxbc"
+  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "haxexbc",
 ): boolean {
   if (!text) return false;
   const lower = text.toLowerCase();
@@ -255,7 +264,7 @@ export function isMentioningTarget(
  */
 export function hasTargetMentionOrTag(
   tweetResult: any,
-  targetHandle: string = "boomerxbc"
+  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "haxexbc",
 ): boolean {
   if (!tweetResult) return false;
   const target = targetHandle.toLowerCase().replace(/^@/, "").trim();
@@ -278,7 +287,7 @@ export function hasTargetMentionOrTag(
     mentions.some(
       (m: any) =>
         (m.screen_name || "").toLowerCase() === target ||
-        (m.name || "").toLowerCase().includes(target)
+        (m.name || "").toLowerCase().includes(target),
     )
   ) {
     return true;
@@ -302,7 +311,7 @@ export function hasTargetMentionOrTag(
       allTags.some(
         (t: any) =>
           (t.screen_name || "").toLowerCase() === target ||
-          (t.name || "").toLowerCase().includes(target)
+          (t.name || "").toLowerCase().includes(target),
       )
     ) {
       return true;
@@ -315,7 +324,7 @@ export function hasTargetMentionOrTag(
         sizeTags.some(
           (t: any) =>
             (t.screen_name || "").toLowerCase() === target ||
-            (t.name || "").toLowerCase().includes(target)
+            (t.name || "").toLowerCase().includes(target),
         )
       ) {
         return true;
@@ -328,7 +337,7 @@ export function hasTargetMentionOrTag(
       directTags.some(
         (t: any) =>
           (t.screen_name || "").toLowerCase() === target ||
-          (t.name || "").toLowerCase().includes(target)
+          (t.name || "").toLowerCase().includes(target),
       )
     ) {
       return true;
@@ -346,11 +355,11 @@ export function hasTargetMentionOrTag(
 }
 
 /**
- * Scan registered user's real-time timeline for mentions and photo tags of @boomerxbc
+ * Scan registered user's real-time timeline for mentions and photo tags of target handle (@haxexbc)
  */
 export async function scanUserForTargetMentions(
   authorHandle: string,
-  targetHandle: string = "boomerxbc"
+  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "haxexbc",
 ): Promise<DetectedTweetMatch[]> {
   const cleanAuthor = authorHandle.replace(/^@/, "").trim();
   const cleanTarget = targetHandle.replace(/^@/, "").trim();
@@ -380,7 +389,7 @@ export async function scanUserForTargetMentions(
       });
 
       const url = `https://x.com/i/api/graphql/${queryId}/UserTweets?variables=${encodeURIComponent(
-        variables
+        variables,
       )}`;
 
       const res = await fetch(url, {
@@ -444,12 +453,15 @@ export async function scanUserForTargetMentions(
         }
       } else {
         console.warn(
-          `[Watcher] UserTweets returned HTTP ${res.status} for @${cleanAuthor}`
+          `[Watcher] UserTweets returned HTTP ${res.status} for @${cleanAuthor}`,
         );
       }
     }
   } catch (err: any) {
-    console.error(`[Watcher] Error scanning user @${cleanAuthor}:`, err.message);
+    console.error(
+      `[Watcher] Error scanning user @${cleanAuthor}:`,
+      err.message,
+    );
   }
 
   return matches;
@@ -479,7 +491,7 @@ export async function fetchFullTweetText(tweetId: string): Promise<string> {
       });
 
       const url = `https://x.com/i/api/graphql/${qid}/TweetDetail?variables=${encodeURIComponent(
-        variables
+        variables,
       )}`;
 
       const res = await fetch(url, {
@@ -499,8 +511,7 @@ export async function fetchFullTweetText(tweetId: string): Promise<string> {
               entry.content?.itemContent?.tweet_results?.result ||
               entry.item?.itemContent?.tweet_results?.result;
             if (tr) {
-              const noteText =
-                tr.note_tweet?.note_tweet_results?.result?.text;
+              const noteText = tr.note_tweet?.note_tweet_results?.result?.text;
               const legacyText = tr.legacy?.full_text;
               if (noteText || legacyText) {
                 return noteText || legacyText;

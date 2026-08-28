@@ -143,7 +143,7 @@ export default function AboutSection() {
             <p>
               agentK acts as your autonomous protocol agent. Every verified
               post, thread, and guide you produce on X is automatically
-              detected, sequenced, and pushed directly to the Flop Network under
+              detected, sequenced, and pushed directly to Technocore under
               your personal{" "}
               <ScrollDecryptKeyword target="cryptographic identity" />.
             </p>
