@@ -28,7 +28,7 @@ export async function executeWatcherStep() {
     );
     console.log(`======================================================`);
 
-    const target = process.env.TARGET_MENTION_HANDLE || "haxexbc";
+    const target = process.env.TARGET_MENTION_HANDLE || "tryagentk";
     lastCycleSummary = await runMentionMonitoringCycle(target);
   } catch (err: any) {
     console.error("[Daemon] Uncaught error in monitoring cycle:", err.message);

@@ -9,9 +9,9 @@ on:
   workflow_dispatch:
     inputs:
       target_handle:
-        description: "Target X handle to monitor (e.g. haxexbc)"
+        description: "Target X handle to monitor (e.g. tryagentk)"
         required: false
-        default: "haxexbc"
+        default: "tryagentk"
 
 # Concurrency group ensures only ONE runner executes at any given time.
 # cancel-in-progress: false queues rather than interrupts active signing/replying.
@@ -48,7 +48,7 @@ jobs:
           AGENT_TWITTER_AUTH_TOKEN: ${{ secrets.AGENT_TWITTER_AUTH_TOKEN }}
           AGENT_TWITTER_CT0: ${{ secrets.AGENT_TWITTER_CT0 }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          TARGET_MENTION_HANDLE: ${{ github.event.inputs.target_handle || secrets.TARGET_MENTION_HANDLE || 'haxexbc' }}
+          TARGET_MENTION_HANDLE: ${{ github.event.inputs.target_handle || secrets.TARGET_MENTION_HANDLE || 'tryagentk' }}
           TECHNOCORE_BASE_URL: ${{ secrets.TECHNOCORE_BASE_URL || 'https://technocore.chat' }}
           TECHNOCORE_PRIVATE_KEY: ${{ secrets.TECHNOCORE_PRIVATE_KEY }}
           SESSION_SECRET: ${{ secrets.SESSION_SECRET || 'agentk_session_secret_2026' }}

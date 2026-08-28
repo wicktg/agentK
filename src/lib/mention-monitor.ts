@@ -73,7 +73,7 @@ export interface CycleSummary {
 }
 
 export async function runMentionMonitoringCycle(
-  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "haxexbc",
+  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "tryagentk",
 ): Promise<CycleSummary> {
   const startTime = new Date().toISOString();
   const summary: CycleSummary = {

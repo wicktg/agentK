@@ -69,7 +69,7 @@ console.log(
 console.log(
   `[Config] Groq LLM Model:        ${isGroqConfigured() ? "Active (qwen/qwen3.8-27b)" : "Missing"}`,
 );
-const TARGET_HANDLE = process.env.TARGET_MENTION_HANDLE || "haxexbc";
+const TARGET_HANDLE = process.env.TARGET_MENTION_HANDLE || "tryagentk";
 console.log(
   `[Loop]   Active — Continuous watch every ${INTERVAL_SECONDS} seconds (Press Ctrl+C to stop)`,
 );

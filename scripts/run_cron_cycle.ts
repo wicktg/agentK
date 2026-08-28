@@ -61,7 +61,7 @@ async function main() {
 
   const watcherCreds = getWatcherCredentials();
   const agentCreds = getAgentCredentials();
-  const targetHandle = process.env.TARGET_MENTION_HANDLE || "haxexbc";
+  const targetHandle = process.env.TARGET_MENTION_HANDLE || "tryagentk";
 
   console.log(
     `[Config] Supabase:         ${isSupabaseConfigured() ? "CONNECTED" : "NOT CONFIGURED"}`,

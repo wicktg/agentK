@@ -76,7 +76,7 @@ Strict Rules:
 - If the post is completely unrelated to Flop Network / $FLOP / Technocore / agentK (e.g., discussing other unrelated cryptocurrencies or non-Flop topics): respond ONLY with \`false\`.
 - Your output must be EXACTLY one word: either \`true\` or \`false\`. Do not include any other words, punctuation, markdown formatting, or reasoning.`;
 
-  const targetHandle = process.env.TARGET_MENTION_HANDLE || "haxexbc";
+  const targetHandle = process.env.TARGET_MENTION_HANDLE || "tryagentk";
   const userPrompt = `Tweet Content to Classify:
 """
 ${tweetContent.trim()}

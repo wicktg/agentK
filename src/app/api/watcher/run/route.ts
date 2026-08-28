@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}));
     const target =
-      body?.targetHandle || process.env.TARGET_MENTION_HANDLE || "haxexbc";
+      body?.targetHandle || process.env.TARGET_MENTION_HANDLE || "tryagentk";
 
     const summary = await runMentionMonitoringCycle(target);
 

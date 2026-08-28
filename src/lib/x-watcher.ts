@@ -240,11 +240,11 @@ export async function verifyXBioChallenge(
 }
 
 /**
- * Check if text contains mentions/tags of target handle (@haxexbc)
+ * Check if text contains mentions/tags of target handle (@tryagentk)
  */
 export function isMentioningTarget(
   text: string,
-  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "haxexbc",
+  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "tryagentk",
 ): boolean {
   if (!text) return false;
   const lower = text.toLowerCase();
@@ -264,7 +264,7 @@ export function isMentioningTarget(
  */
 export function hasTargetMentionOrTag(
   tweetResult: any,
-  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "haxexbc",
+  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "tryagentk",
 ): boolean {
   if (!tweetResult) return false;
   const target = targetHandle.toLowerCase().replace(/^@/, "").trim();
@@ -286,9 +286,9 @@ export function hasTargetMentionOrTag(
     .filter(Boolean)
     .join(" ");
 
-  const cardBindingValues = (tweetResult.card?.legacy?.binding_values || []).map(
-    (b: any) => b?.value?.string_value || "",
-  );
+  const cardBindingValues = (
+    tweetResult.card?.legacy?.binding_values || []
+  ).map((b: any) => b?.value?.string_value || "");
 
   const fullText = (
     (tweetResult.note_tweet?.note_tweet_results?.result?.text || "") +
@@ -307,15 +307,11 @@ export function hasTargetMentionOrTag(
   // 2. User Mentions entity check (legacy, note tweet, and article entities)
   const legacyMentions = legacy.entities?.user_mentions || [];
   const noteMentions =
-    tweetResult.note_tweet?.note_tweet_results?.result?.entity_set?.user_mentions ||
-    [];
+    tweetResult.note_tweet?.note_tweet_results?.result?.entity_set
+      ?.user_mentions || [];
   const articleMentions = articleObj.entity_set?.user_mentions || [];
 
-  const allMentions = [
-    ...legacyMentions,
-    ...noteMentions,
-    ...articleMentions,
-  ];
+  const allMentions = [...legacyMentions, ...noteMentions, ...articleMentions];
 
   if (
     allMentions.some(
@@ -389,11 +385,11 @@ export function hasTargetMentionOrTag(
 }
 
 /**
- * Scan registered user's real-time timeline for mentions and photo tags of target handle (@haxexbc)
+ * Scan registered user's real-time timeline for mentions and photo tags of target handle (@tryagentk)
  */
 export async function scanUserForTargetMentions(
   authorHandle: string,
-  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "haxexbc",
+  targetHandle: string = process.env.TARGET_MENTION_HANDLE || "tryagentk",
 ): Promise<DetectedTweetMatch[]> {
   const cleanAuthor = authorHandle.replace(/^@/, "").trim();
   const cleanTarget = targetHandle.replace(/^@/, "").trim();
