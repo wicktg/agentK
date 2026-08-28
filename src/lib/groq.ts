@@ -165,7 +165,11 @@ export function enforceActionVerb(phrase: string): string {
     text = "break down " + text;
   } else if (/^that\b/i.test(text)) {
     text = "demonstrate " + text;
-  } else if (/^the\b/i.test(text) || /^a\b/i.test(text) || /^an\b/i.test(text)) {
+  } else if (
+    /^the\b/i.test(text) ||
+    /^a\b/i.test(text) ||
+    /^an\b/i.test(text)
+  ) {
     text = "analyze " + text;
   }
 

@@ -53,4 +53,5 @@ async function whitelistUser(username: string) {
   console.log(`✓ Successfully whitelisted @${cleanUser}! Record:`, data);
 }
 
-whitelistUser("0x_aleph").catch(console.error);
+const targetUser = process.argv[2] || "valor0x";
+whitelistUser(targetUser).catch(console.error);
