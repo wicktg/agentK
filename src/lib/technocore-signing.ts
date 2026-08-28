@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { didFromKeyObject } from "./crypto";
+import { enforceActionVerb } from "./groq";
 
 // Unicode disallowed control/invisible categories to strip: Cc, Cf, Cs, Co, Zl, Zp
 const DISALLOWED_UNICODE_REGEX = /[\p{Cc}\p{Cf}\p{Cs}\p{Co}\p{Zl}\p{Zp}]/gu;
@@ -145,12 +146,7 @@ export function formatContributionText(
   summary: string = "break down key ecosystem tokenomics and incentive mechanisms for Flop Network",
 ): string {
   const cleanHandle = authorHandle.replace(/^@/, "").trim();
-  const cleanSummary = (summary || "")
-    .trim()
-    .replace(/[\[\]]/g, "")
-    .replace(/\s+/g, " ")
-    .replace(/\.+$/, "") // Strip any trailing period inside summary
-    .replace(/^where I\s+/i, ""); // Strip redundant "where I" if present
+  const cleanSummary = enforceActionVerb(summary || "");
 
   // Format: "I published an X contribution: https://x.com/<author>/status/<id> where I 10-12 words here."
   return `I published an X contribution: https://x.com/${cleanHandle}/status/${tweetId} where I ${cleanSummary}.`;

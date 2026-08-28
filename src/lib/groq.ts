@@ -135,6 +135,51 @@ Is this post discussing or referencing Technocore, Agent Identity, Flop Network,
 }
 
 /**
+ * Normalizes and guarantees that the summary clause strictly starts with an active verb.
+ * If the model outputs "how Flop's...", automatically transforms to "explain how Flop's...".
+ */
+export function enforceActionVerb(phrase: string): string {
+  let text = (phrase || "")
+    .trim()
+    .replace(/^["'\[]+|[\]"']+$/g, "")
+    .replace(/^Summary:\s*/i, "")
+    .replace(/^Contribution:\s*/i, "")
+    .replace(/^Impact:\s*/i, "")
+    .replace(/^where\s+I\s+/i, "")
+    .replace(/^I\s+/i, "")
+    .replace(/[\[\]]/g, "")
+    .replace(/\.+$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!text) {
+    return "break down key ecosystem tokenomics and incentive mechanisms for Flop Network";
+  }
+
+  // Auto-correct any missing active verb
+  if (/^how\b/i.test(text)) {
+    text = "explain " + text;
+  } else if (/^why\b/i.test(text)) {
+    text = "explain " + text;
+  } else if (/^what\b/i.test(text)) {
+    text = "break down " + text;
+  } else if (/^that\b/i.test(text)) {
+    text = "demonstrate " + text;
+  } else if (/^the\b/i.test(text) || /^a\b/i.test(text) || /^an\b/i.test(text)) {
+    text = "analyze " + text;
+  }
+
+  // Lowercase first letter for natural continuation
+  text = text.charAt(0).toLowerCase() + text.slice(1);
+
+  const words = text.split(" ").filter(Boolean);
+  if (words.length > 13) {
+    return words.slice(0, 12).join(" ");
+  }
+  return text;
+}
+
+/**
  * Generate a concise 10–12 word statement explaining what contribution this post makes to Flop Network & Technocore
  */
 export async function generateContributionSummary(
@@ -150,22 +195,27 @@ export async function generateContributionSummary(
   }
 
   const systemPrompt = `You are an AI ecosystem and research analyst for Flop Network & Technocore.
-Analyze the provided X (Twitter) post and generate a concise, high-impact 10 to 12 word phrase that completes the sentence: "I published an X contribution: <url> where I [YOUR 10-12 WORDS HERE]".
+Analyze the provided X (Twitter) post and generate a concise 10 to 12 word phrase that completes the sentence: "I published an X contribution: <url> where I [YOUR PHRASE]".
 
-Strict Rules:
-- The phrase MUST start with a present-tense first-person active verb (e.g. "break down", "analyze", "explain", "outline", "explore", "evaluate", "highlight").
-- Do NOT include the words "where I" or "I" at the start.
-- The phrase MUST be strictly 10 to 12 words long.
-- It must describe the specific technical contribution, tokenomics insight, or ecosystem value provided in the tweet regarding Flop Network, $FLOP, or Technocore.
-- Do NOT include periods (.), quotes, brackets ([]), or prefix tags (e.g. "Summary:").
-- Output ONLY the 10 to 12 word phrase.`;
+Strict Grammatical Rules:
+1. The VERY FIRST word of your response MUST be a present-tense base action verb (e.g. "explain", "analyze", "break down", "evaluate", "outline", "explore", "detail", "highlight").
+2. NEVER start with "how", "that", "what", "why", "the", "a", "an", "this", "my", "I", or "where I".
+3. If the topic is about how something works, you MUST write "explain how..." or "analyze how...", NEVER just "how...".
+4. The phrase MUST be strictly 10 to 12 words long.
+5. Do NOT include punctuation like periods (.), quotes, brackets ([]), or prefix labels.
+6. Output ONLY the 10 to 12 word phrase.
+
+Few-Shot Examples:
+- Tweet on token unlocks -> explain how role-based unlock mechanics incentivize sustained miner network participation
+- Tweet on validator staking -> analyze how staking validator rewards scale across the Flop testnet pipeline
+- Tweet on agent DID -> break down decentralized identity verification using autonomous agent Ed25519 signatures`;
 
   const userPrompt = `Post Content:
 """
 ${tweetContent.trim().slice(0, 1500)}
 """
 
-Generate the 10-12 word phrase (starting with an active verb, no period, no brackets):`;
+Generate the 10-12 word phrase starting with an active verb (no period, no brackets):`;
 
   try {
     const res = await fetch(GROQ_API_URL, {
@@ -180,27 +230,18 @@ Generate the 10-12 word phrase (starting with an active verb, no period, no brac
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.2,
+        temperature: 0.1,
         max_tokens: 50,
       }),
     });
 
     if (res.ok) {
       const data = await res.json();
-      let summary = (data?.choices?.[0]?.message?.content || "")
-        .trim()
-        .replace(/^["'\[]+|[\]"']+$/g, "")
-        .replace(/^Summary:\s*/i, "")
-        .replace(/^Contribution:\s*/i, "")
-        .replace(/^Impact:\s*/i, "")
-        .replace(/^where\s+I\s+/i, "")
-        .replace(/[\[\]]/g, "")
-        .replace(/\.+$/, "") // Strip trailing period
-        .replace(/\s+/g, " ");
-
-      const words = summary.split(" ").filter(Boolean);
-      if (words.length >= 8 && words.length <= 15) {
-        return words.slice(0, 12).join(" ");
+      const rawText = data?.choices?.[0]?.message?.content || "";
+      const normalized = enforceActionVerb(rawText);
+      const words = normalized.split(" ").filter(Boolean);
+      if (words.length >= 7) {
+        return normalized;
       }
     }
     return fallback;
