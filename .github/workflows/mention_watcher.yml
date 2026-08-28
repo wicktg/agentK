@@ -2,8 +2,10 @@ name: agentK Mention Watcher & Autonomous Replier
 
 on:
   schedule:
-    # Runs every 5 minutes (300 seconds)
+    # Fallback native cron schedule every 5 minutes (300 seconds)
     - cron: "*/5 * * * *"
+  repository_dispatch:
+    types: [cron_trigger]
   workflow_dispatch:
     inputs:
       target_handle:
