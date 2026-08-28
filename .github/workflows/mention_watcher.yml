@@ -1,0 +1,53 @@
+name: agentK Mention Watcher & Autonomous Replier
+
+on:
+  schedule:
+    # Runs every 5 minutes (300 seconds)
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+    inputs:
+      target_handle:
+        description: "Target X handle to monitor (e.g. haxexbc)"
+        required: false
+        default: "haxexbc"
+
+# Concurrency group ensures only ONE runner executes at any given time.
+# cancel-in-progress: false queues rather than interrupts active signing/replying.
+concurrency:
+  group: agentk-mention-watcher-cron
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    name: Watch Mentions & Dispatch Proofs
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Monitoring Cycle
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          WATCHER_TWITTER_AUTH_TOKEN: ${{ secrets.WATCHER_TWITTER_AUTH_TOKEN }}
+          WATCHER_TWITTER_CT0: ${{ secrets.WATCHER_TWITTER_CT0 }}
+          AGENT_TWITTER_AUTH_TOKEN: ${{ secrets.AGENT_TWITTER_AUTH_TOKEN }}
+          AGENT_TWITTER_CT0: ${{ secrets.AGENT_TWITTER_CT0 }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          TARGET_MENTION_HANDLE: ${{ github.event.inputs.target_handle || secrets.TARGET_MENTION_HANDLE || 'haxexbc' }}
+          TECHNOCORE_BASE_URL: ${{ secrets.TECHNOCORE_BASE_URL || 'https://technocore.chat' }}
+          TECHNOCORE_PRIVATE_KEY: ${{ secrets.TECHNOCORE_PRIVATE_KEY }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET || 'agentk_session_secret_2026' }}
+        run: npx tsx scripts/run_cron_cycle.ts
