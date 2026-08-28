@@ -288,7 +288,14 @@ export function hasTargetMentionOrTag(
 
   const cardBindingValues = (
     tweetResult.card?.legacy?.binding_values || []
-  ).map((b: any) => b?.value?.string_value || "");
+  ).map(
+    (b: any) =>
+      b?.value?.string_value ||
+      b?.value?.title_value ||
+      b?.value?.text_value ||
+      b?.value?.summary_value ||
+      "",
+  );
 
   const fullText = (
     (tweetResult.note_tweet?.note_tweet_results?.result?.text || "") +
