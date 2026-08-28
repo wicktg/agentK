@@ -44,37 +44,72 @@ export interface ContributionRecord {
 
 /**
  * Fetch all registered and verified user accounts from Supabase.
- * The watcher will ONLY monitor mentions and posts from these registered accounts.
+ * Queries both `profiles` (verified users) and `whitelist` (whitelisted users).
  */
 export async function getRegisteredUsers(): Promise<RegisteredUser[]> {
   if (!isSupabaseConfigured()) {
+    console.warn("[Supabase] Supabase is not configured; cannot fetch registered users.");
     return [];
   }
 
   try {
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
+
+    // 1. Fetch verified accounts from profiles
+    const { data: profiles, error: pError } = await supabase
       .from("profiles")
       .select("id, did, x_handle, x_name, x_verified, encrypted_signing_key")
-      .not("x_handle", "is", null)
-      .eq("x_verified", true);
+      .not("x_handle", "is", null);
 
-    if (error) {
-      console.error(
-        "[Supabase] Error fetching registered users:",
-        error.message,
-      );
-      return [];
+    if (pError) {
+      console.warn("[Supabase] Notice querying profiles:", pError.message);
     }
 
-    return (data || []).map((row: any) => ({
-      id: row.id,
-      did: row.did,
-      x_handle: row.x_handle.replace(/^@/, "").toLowerCase().trim(),
-      x_name: row.x_name,
-      x_verified: row.x_verified,
-      encrypted_signing_key: row.encrypted_signing_key,
-    }));
+    // 2. Fetch whitelisted accounts from whitelist table
+    const { data: whitelist, error: wError } = await supabase
+      .from("whitelist")
+      .select("id, x_username, status, is_whitelisted")
+      .eq("is_whitelisted", true);
+
+    if (wError) {
+      console.warn("[Supabase] Notice querying whitelist:", wError.message);
+    }
+
+    const userMap = new Map<string, RegisteredUser>();
+
+    // Add profiles
+    for (const row of profiles || []) {
+      const clean = (row.x_handle || "").replace(/^@/, "").toLowerCase().trim();
+      if (!clean) continue;
+      userMap.set(clean, {
+        id: row.id,
+        did: row.did,
+        x_handle: clean,
+        x_name: row.x_name,
+        x_verified: row.x_verified ?? true,
+        encrypted_signing_key: row.encrypted_signing_key,
+      });
+    }
+
+    // Add any whitelisted users
+    for (const w of whitelist || []) {
+      const clean = (w.x_username || "").replace(/^@/, "").toLowerCase().trim();
+      if (!clean) continue;
+      if (!userMap.has(clean)) {
+        userMap.set(clean, {
+          id: w.id,
+          did: "",
+          x_handle: clean,
+          x_verified: true,
+        });
+      }
+    }
+
+    const result = Array.from(userMap.values());
+    console.log(
+      `[Supabase] Resolved ${result.length} registered/whitelisted user(s) to monitor: [${result.map((u) => "@" + u.x_handle).join(", ")}]`,
+    );
+    return result;
   } catch (err: any) {
     console.error("[Supabase] Exception in getRegisteredUsers:", err.message);
     return [];
