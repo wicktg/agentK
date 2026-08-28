@@ -48,7 +48,9 @@ export interface ContributionRecord {
  */
 export async function getRegisteredUsers(): Promise<RegisteredUser[]> {
   if (!isSupabaseConfigured()) {
-    console.warn("[Supabase] Supabase is not configured; cannot fetch registered users.");
+    console.warn(
+      "[Supabase] Supabase is not configured; cannot fetch registered users.",
+    );
     return [];
   }
 
